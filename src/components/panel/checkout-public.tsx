@@ -3,15 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import {
-  ArrowRight, CheckCircle2, Clock, Loader2, Lock, Moon,
-  QrCode, RefreshCw, ShieldCheck, Sun, XCircle,
+  ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Copy, Headphones,
+  Info, Loader2, Lock, Moon, QrCode, RefreshCw, ShieldCheck, Sun, X, XCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
@@ -24,23 +23,29 @@ import { formatBDT, formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useLang } from '@/lib/i18n'
 import { useTheme } from '@/hooks/use-theme'
-import { gatewayInstructions, methodLabelEn, methodLabelBn } from '@/lib/gateways'
+import {
+  gatewayStructuredSteps, methodLabelEn, methodLabelBn,
+  type InstructionStep,
+} from '@/lib/gateways'
 import {
   CheckoutTab, ChromeFooter, CopyRow, GatewayTileGrid, LoadingSkeleton,
-  MethodTabs, ProductSummaryCard, QuickPaymentHeader, SupportBlock,
-  TopBar, accountTypeLabel, fmtRemaining, formatRefMoney, tabOf,
+  ProductSummaryCard, SupportBlock, TopBar, TAB_META, fmtRemaining,
+  formatRefMoney, tabOf,
   type BrandLike, type GatewayLike,
 } from './checkout-chrome'
 import { GatewayCardLogos, GatewayLogo } from './gateway-logo'
 import { CopyButton } from './ui-bits'
 
 // ── Public checkout page (/pay/[token]) — reference-style money page ─────────
-// Layout follows the reference screenshots: white product summary card with
-// the merchant's brand logo + name (from Brand Settings), "Quick Payment"
-// greeting, "Select a card" dropdown, Cards / Mobile / Net Banking tabs with
-// real gateway logos and a selection check, per-method payment details, terms
-// line and a big PAY button. Fully responsive (mobile → desktop) with a
-// sticky summary column on large screens.
+// Two-view flow exactly like the reference screenshots:
+//   1. Gateway picker — brand logo + name (Brand Settings), segmented
+//      "Mobile Banking / Net Banking / Global" tabs, 3-col logo grid,
+//      "Pay Now (amount)" footer.
+//   2. Per-gateway view — back arrow, gateway logo, PipraPay-exact colored
+//      instruction box with inline copy buttons, Transaction/Order ID input,
+//      sender number and a full-width Verify button in the gateway's colors.
+// Responsive: mobile-first card, sticky brand summary on lg+ screens, EN+BN,
+// light/dark themes, micro-animations everywhere.
 
 interface FieldDef {
   name: string
@@ -107,6 +112,68 @@ function gatewayHasQr(g: GatewayLike): boolean {
   return (g as GatewayLike & { hasQr?: boolean }).hasQr ?? true
 }
 
+/** "500.00BDT" — reference-style footer amount (no space, no symbol). */
+function amountNoSpace(n: number, currency: string): string {
+  return `${Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${currency}`
+}
+
+/** Inline white copy chip rendered inside the colored instruction box. */
+function StepCopy({ value, tint }: { value: string; tint: string }) {
+  const { t } = useLang()
+  const [done, setDone] = useState(false)
+  if (!value) return null
+  return (
+    <button
+      type="button"
+      className="ml-1.5 inline-flex h-6 w-6 shrink-0 translate-y-[3px] items-center justify-center rounded-md bg-white align-middle shadow-sm transition-transform active:scale-90"
+      style={{ color: tint }}
+      aria-label={t('copy')}
+      onClick={async (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          await navigator.clipboard.writeText(value)
+        } catch {
+          try {
+            const ta = document.createElement('textarea')
+            ta.value = value
+            document.body.appendChild(ta)
+            ta.select()
+            document.execCommand('copy')
+            document.body.removeChild(ta)
+          } catch { /* clipboard unavailable */ }
+        }
+        setDone(true)
+        toast.success(t('copied'))
+        window.setTimeout(() => setDone(false), 1400)
+      }}
+    >
+      {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  )
+}
+
+/** Small circular icon button used in the card headers (reference style). */
+function CircleIconBtn({
+  onClick, label, children,
+}: {
+  onClick: () => void
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="press flex h-9 w-9 items-center justify-center rounded-full border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+    >
+      {children}
+    </button>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────── Main view ──
 
 export function CheckoutPublicView({ token }: { token: string }) {
@@ -119,6 +186,7 @@ export function CheckoutPublicView({ token }: { token: string }) {
   const [pollTimedOut, setPollTimedOut] = useState(false)
 
   // form state
+  const [view, setView] = useState<'pick' | 'pay'>('pick')
   const [selectedCode, setSelectedCode] = useState<string | null>(null)
   const [tab, setTab] = useState<CheckoutTab | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -132,10 +200,12 @@ export function CheckoutPublicView({ token }: { token: string }) {
   const [cardName, setCardName] = useState('')
   const [rememberCard, setRememberCard] = useState(false)
 
-  // countdown + qr
+  // countdown + qr + dialogs
   const [remaining, setRemaining] = useState<number | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
   const [qrData, setQrData] = useState<string | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
 
   const expiryRefreshedRef = useRef(false)
 
@@ -237,7 +307,6 @@ export function CheckoutPublicView({ token }: { token: string }) {
     if (list.length === 0) return null
     const byCode = (code: string | null | undefined) =>
       code ? list.find((g) => g.code === code) ?? null : null
-    // preselect checkout.gatewayCode, else user pick, else first gateway
     return byCode(selectedCode) ?? byCode(checkout?.gatewayCode) ?? list[0]
   }, [data, selectedCode, checkout?.gatewayCode])
 
@@ -247,15 +316,15 @@ export function CheckoutPublicView({ token }: { token: string }) {
       const tb = tabOf(g)
       if (!set.includes(tb)) set.push(tb)
     }
-    return set
+    // keep reference order: Mobile Banking → Net Banking → Global
+    return TAB_META.map((m) => m.id).filter((id) => set.includes(id))
   }, [data])
 
   const activeTab: CheckoutTab = tab ?? (selectedGateway ? tabOf(selectedGateway) : tabs[0] ?? 'MOBILE')
 
-  // Keep the tab in sync with a gateway picked from the dropdown
+  // Keep the tab in sync with a gateway picked from elsewhere
   useEffect(() => {
     if (selectedGateway) setTab(tabOf(selectedGateway))
-     
   }, [selectedGateway?.code])
 
   const visibleGateways = useMemo(
@@ -286,14 +355,22 @@ export function CheckoutPublicView({ token }: { token: string }) {
   }, [checkout?.amount, selectedGateway])
 
   const showCardForm = selectedGateway
-    ? selectedGateway.code === 'CARD_MANUAL' || (activeTab === 'CARDS' && selectedGateway.category === 'GLOBAL' && selectedGateway.type === 'MANUAL' && gatewayMethod(selectedGateway) === 'CARD')
+    ? selectedGateway.code === 'CARD_MANUAL' || (activeTab === 'GLOBAL' && selectedGateway.category === 'GLOBAL' && selectedGateway.type === 'MANUAL' && gatewayMethod(selectedGateway) === 'CARD')
     : false
 
   const currency = checkout?.currency ?? 'BDT'
+  const gwColor = selectedGateway?.color ?? FALLBACK_COLOR
+  const gwTextColor = selectedGateway?.textColor || '#FFFFFF'
+  const gwButtonColor = selectedGateway?.buttonColor || gwColor
+  const gwButtonText = selectedGateway?.buttonText || '#FFFFFF'
+  const isBinance = selectedGateway?.code.toUpperCase().startsWith('BINANCE') ?? false
+  const isApiGw = selectedGateway
+    ? selectedGateway.type === 'API' || gatewayMethod(selectedGateway) === 'API_CHECKOUT'
+    : false
 
-  const instructionSteps = useMemo(() => {
+  const structuredSteps: InstructionStep[] = useMemo(() => {
     if (!selectedGateway) return []
-    return gatewayInstructions(
+    return gatewayStructuredSteps(
       {
         code: selectedGateway.code,
         mfs: selectedGateway.mfs,
@@ -338,16 +415,44 @@ export function CheckoutPublicView({ token }: { token: string }) {
     return out
   }, [data?.payTo])
 
+  const gwBrandName = useMemo(() => {
+    if (!selectedGateway) return ''
+    const raw = selectedGateway.displayName || selectedGateway.name
+    return (
+      raw
+        .replace(/\s*\((?:Personal|Agent|Merchant|DBBL|Tokenized API|Merchant API)\)\s*/gi, ' ')
+        .replace(/\s+(Personal|Agent|Merchant)\s*$/i, '')
+        .replace(/\s+/g, ' ')
+        .trim() || selectedGateway.name
+    )
+  }, [selectedGateway])
+
   // ── Actions ──
 
   const openQr = async () => {
     setQrData(null)
     setQrOpen(true)
     try {
+      if (selectedGateway?.qrImage) {
+        setQrData(selectedGateway.qrImage)
+        return
+      }
       const payload = `Number: ${accountNumber ?? ''}\nAmount: ${formatRefMoney(pricing.total, currency)}`
       setQrData(await QRCode.toDataURL(payload, { width: 280, margin: 1 }))
     } catch {
       setQrData(null)
+    }
+  }
+
+  const closePicker = () => {
+    if (checkout?.successUrl) {
+      window.location.href = checkout.successUrl
+      return
+    }
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back()
+    } else {
+      window.location.href = '/'
     }
   }
 
@@ -382,6 +487,7 @@ export function CheckoutPublicView({ token }: { token: string }) {
           senderNumber: phone,
           trxId: effectiveTrx || undefined,
           answers: customFields.length > 0 ? answers : undefined,
+          gatewayCode: selectedGateway?.code ?? undefined,
         }),
       })
       const d = (await res.json().catch(() => null)) as { ok?: boolean; status?: string; error?: string } | null
@@ -394,6 +500,8 @@ export function CheckoutPublicView({ token }: { token: string }) {
         setPollTimedOut(false)
         setData((prev) => (prev ? { ...prev, checkout: { ...prev.checkout, status: 'AWAITING' } } : prev))
         setPhase('awaiting')
+      } else if (res.status === 422 && d?.error === 'PENDING_DISABLED') {
+        toast.error(t('cpubPendingDisabled'))
       } else if (res.status === 403) {
         toast.error(t('cpubBlocked'))
       } else {
@@ -556,349 +664,420 @@ export function CheckoutPublicView({ token }: { token: string }) {
       ? t('expired')
       : null
 
-  // ── Payment panel: tabs + grid + form (shared by mobile & desktop column) ──
-  const payPanel = (
-    <div className="space-y-4">
-      <div className="rounded-2xl border bg-card shadow-brand-lg">
-        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-3">
-          <QuickPaymentHeader customerName={c.customerName} />
+  // ── View 1: gateway picker (reference image #1) ──
+  const pickView = (
+    <div className="anim-fade-up">
+      {/* header: close + support/info */}
+      <div className="flex items-center justify-between px-3.5 pt-3.5">
+        <CircleIconBtn onClick={closePicker} label={t('cpubClose')}>
+          <X className="h-4 w-4" />
+        </CircleIconBtn>
+        <div className="flex items-center gap-1.5">
+          <CircleIconBtn onClick={() => setSupportOpen(true)} label={t('cpubContactSupport')}>
+            <Headphones className="h-4 w-4" />
+          </CircleIconBtn>
+          <CircleIconBtn onClick={() => setDetailsOpen(true)} label={t('cpubPaymentDetails')}>
+            <Info className="h-4 w-4" />
+          </CircleIconBtn>
         </div>
+      </div>
 
-        {/* Select a card — quick dropdown over every enabled gateway */}
-        {!awaiting && data && data.gateways.length > 0 && (
-          <div className="px-4 pb-3">
-            <Select
-              value={selectedGateway?.code ?? ''}
-              onValueChange={(v) => setSelectedCode(v)}
-            >
-              <SelectTrigger className="h-11 w-full rounded-xl border-border bg-muted/30 text-sm font-semibold">
-                <SelectValue placeholder={t('cpubSelectCard')} />
-              </SelectTrigger>
-              <SelectContent className="max-h-72 rounded-xl">
-                {tabs.map((tb) => {
-                  const meta = { CARDS: t('cpubTabCards'), MOBILE: t('cpubTabMobile'), NET_BANKING: t('cpubTabNetBanking') }[tb]
-                  const items = (data?.gateways ?? []).filter((g) => tabOf(g) === tb)
-                  if (items.length === 0) return null
-                  return (
-                    <SelectGroup key={tb}>
-                      <SelectLabel className="text-[10px] font-extrabold uppercase tracking-wide text-muted-foreground">{meta}</SelectLabel>
-                      {items.map((g) => (
-                        <SelectItem key={g.code} value={g.code} className="text-sm">
-                          <span className="flex w-full items-center gap-2.5">
-                            <span className="flex h-6 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white ring-1 ring-black/5">
-                              <GatewayLogo code={g.code} mfs={g.mfs} color={g.color} size={20} variant="wordmark" />
-                            </span>
-                            <span className="truncate">{g.name}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  )
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* brand logo + name (Brand Settings) */}
+      <div className="flex flex-col items-center gap-2 px-4 pb-1 pt-2.5">
+        {brand?.logo ? (
+           
+          <img
+            src={brand.logo}
+            alt={brand.name}
+            className="h-16 w-auto max-w-[190px] rounded-xl bg-white object-contain"
+          />
+        ) : (
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <ShieldCheck className="h-7 w-7" />
+          </span>
         )}
+        <p className="text-center text-lg font-extrabold leading-tight text-foreground">
+          {brand?.name ?? 'Invokeil Pay'}
+        </p>
+      </div>
 
-        {/* Method tabs — switching a tab auto-selects that tab's first method */}
-        {!awaiting && tabs.length > 1 && (
-          <MethodTabs
-            tabs={tabs}
-            active={activeTab}
-            onChange={(tb) => {
-              setTab(tb)
-              const first = (data?.gateways ?? []).find((g) => tabOf(g) === tb)
-              if (first) setSelectedCode(first.code)
+      {/* tabs — Mobile Banking / Net Banking / Global */}
+      {tabs.length > 1 && (
+        <div className="px-4 pt-3">
+          <div className="grid grid-flow-col auto-cols-fr gap-1 rounded-xl border bg-muted/30 p-1" role="tablist">
+            {TAB_META.filter((m) => tabs.includes(m.id)).map((m) => {
+              const Icon = m.icon
+              const isActive = activeTab === m.id
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => {
+                    setTab(m.id)
+                    const first = (data?.gateways ?? []).find((g) => tabOf(g) === m.id)
+                    if (first) setSelectedCode(first.code)
+                  }}
+                  className={cn(
+                    'press flex min-h-[42px] items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-bold whitespace-nowrap transition-all duration-200 sm:text-xs',
+                    isActive
+                      ? 'bg-card text-primary shadow-sm ring-1 ring-primary/20'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" strokeWidth={isActive ? 2.4 : 2} />
+                  <span className="min-w-0 overflow-hidden text-ellipsis">{t(m.labelKey)}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* gateway logo grid */}
+      <div className="px-4 pt-3">
+        {visibleGateways.length > 0 ? (
+          <GatewayTileGrid
+            gateways={visibleGateways}
+            onPick={(code) => {
+              setSelectedCode(code)
+              setView('pay')
             }}
           />
-        )}
-
-        {/* Gateway logo grid */}
-        {!awaiting && visibleGateways.length > 0 && (
-          <div className="px-4 pt-3">
-            <GatewayTileGrid
-              gateways={visibleGateways}
-              selectedCode={selectedGateway?.code ?? null}
-              onSelect={(code) => setSelectedCode(code)}
-            />
-          </div>
-        )}
-
-        {/* Selected method details + verify form */}
-        {!awaiting && selectedGateway && (
-          <div className="anim-fade-up space-y-3.5 px-4 pb-4 pt-4">
-            {/* method chip row */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
-                style={{ backgroundColor: selectedGateway.color }}
-              >
-                <ShieldCheck className="h-3 w-3" /> {selectedGateway.name}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
-                {methodChip}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
-                {accountTypeLabel(selectedGateway.accountType, t)}
-              </span>
-            </div>
-
-            {accountNumber && (
-              <CopyRow label={t('cpubAccountNumber')} value={accountNumber} />
-            )}
-
-            <div
-              className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
-              style={{ backgroundColor: `${selectedGateway.color}14` }}
-            >
-              <span className="text-xs font-semibold text-muted-foreground">{t('cpubSendExactly')}</span>
-              <span className="tabular text-lg font-extrabold" style={{ color: selectedGateway.color }}>
-                {formatRefMoney(pricing.total, currency)}
-              </span>
-            </div>
-
-            {accountNumber && !showCardForm && (
-              <Button
-                type="button"
-                variant="outline"
-                className="press h-11 w-full gap-2 text-xs font-bold"
-                onClick={() => openQr()}
-              >
-                <QrCode className="h-4 w-4" /> {t('cpubShowQr')}
-              </Button>
-            )}
-
-            {rangeWarn && (
-              <p className="rounded-lg bg-warning/15 px-3 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
-                {rangeWarn}
-              </p>
-            )}
-
-            {(pricing.charge > 0 || pricing.discount > 0) && (
-              <div className="space-y-1.5 rounded-xl border bg-muted/30 px-4 py-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('amount')}</span>
-                  <span className="tabular font-bold text-foreground">{formatRefMoney(c.amount, currency)}</span>
-                </div>
-                {pricing.charge > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('cpubCharge')}</span>
-                    <span className="tabular font-bold text-amber-600 dark:text-amber-400">+{formatRefMoney(pricing.charge, currency)}</span>
-                  </div>
-                )}
-                {pricing.discount > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('cpubYouSave')}</span>
-                    <span className="tabular font-bold text-success">−{formatRefMoney(pricing.discount, currency)}</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between border-t pt-1.5">
-                  <span className="font-bold text-foreground">{t('cpubTotal')}</span>
-                  <span className="tabular font-extrabold text-foreground">{formatRefMoney(pricing.total, currency)}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Card form (Cards tab) — reference layout, PCI-safe submit */}
-            {showCardForm && (
-              <div className="anim-fade-up space-y-3 rounded-xl border bg-muted/20 p-4">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="pub-card" className="text-xs font-semibold text-foreground/80">{t('cpubCardNumber')}</Label>
-                  <div className="relative">
-                    <Input
-                      id="pub-card"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, '').slice(0, 23))}
-                      placeholder="4242 4242 4242 4242"
-                      inputMode="numeric"
-                      autoComplete="cc-number"
-                      className="h-11 pr-24"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <GatewayCardLogos />
-                    </span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="pub-exp" className="text-xs font-semibold text-foreground/80">{t('cpubExpiryDate')}</Label>
-                    <Input
-                      id="pub-exp"
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value.slice(0, 7))}
-                      placeholder="MM / YY"
-                      inputMode="numeric"
-                      autoComplete="cc-exp"
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="pub-cvc" className="text-xs font-semibold text-foreground/80">{t('cpubCvc')}</Label>
-                    <Input
-                      id="pub-cvc"
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      placeholder="•••"
-                      inputMode="numeric"
-                      autoComplete="cc-csc"
-                      className="h-11"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="pub-name" className="text-xs font-semibold text-foreground/80">{t('cpubNameOnCard')}</Label>
-                  <Input
-                    id="pub-name"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value.slice(0, 60))}
-                    placeholder="AHMED RAHMAN"
-                    autoComplete="cc-name"
-                    className="h-11 uppercase"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch id="pub-remember" checked={rememberCard} onCheckedChange={setRememberCard} />
-                  <Label htmlFor="pub-remember" className="text-xs text-muted-foreground">
-                    {t('cpubRememberCard')}{' '}
-                    <span className="cursor-pointer font-semibold text-success underline-offset-2 hover:underline">{t('cpubLearnMore')}</span>
-                  </Label>
-                </div>
-              </div>
-            )}
-
-            {/* How to pay — per-gateway step flow (PipraPay-exact) */}
-            {instructionSteps.length > 0 && (
-              <div>
-                <p className="mb-2 text-xs font-bold text-foreground">{t('cpubHowToPay')}</p>
-                <ol className="space-y-2">
-                  {instructionSteps.map((s, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-muted-foreground">
-                      <span
-                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold"
-                        style={{ backgroundColor: `${selectedGateway.color}1A`, color: selectedGateway.color }}
-                      >
-                        {i + 1}
-                      </span>
-                      {s}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-
-            {/* Custom fields */}
-            {customFields.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-bold text-foreground">{t('cpubAdditionalInfo')}</p>
-                {customFields.map((f) => (
-                  <div key={f.name} className="grid gap-1.5">
-                    <Label htmlFor={`cf-${f.name}`} className="text-xs font-semibold text-foreground/80">
-                      {f.label} {f.required && <span className="text-destructive">*</span>}
-                    </Label>
-                    <Input
-                      id={`cf-${f.name}`}
-                      value={answers[f.name] ?? ''}
-                      onChange={(e) => setAnswers((a) => ({ ...a, [f.name]: e.target.value }))}
-                      maxLength={300}
-                      className="h-11"
-                      aria-invalid={!!fieldErrors[f.name]}
-                    />
-                    {fieldErrors[f.name] && (
-                      <p className="text-[11px] font-semibold text-destructive">{fieldErrors[f.name]}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Sender + TrxID (hidden for pure card form) */}
-            {!showCardForm && (
-              <div className="grid gap-3">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="pub-sender" className="text-xs font-semibold text-foreground/80">
-                    {t('cpubYourNumber')} <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="pub-sender"
-                    value={senderNumber}
-                    onChange={(e) => setSenderNumber(e.target.value)}
-                    placeholder="01XXXXXXXXX"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    className="h-11"
-                  />
-                  <p className="text-[11px] text-muted-foreground">{t('cpubYourNumberHint')}</p>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="pub-trxid" className="text-xs font-semibold text-foreground/80">
-                    {t('cpubTrxId')}
-                  </Label>
-                  <Input
-                    id="pub-trxid"
-                    value={trxId}
-                    onChange={(e) => setTrxId(e.target.value)}
-                    placeholder="9F7A2K1B"
-                    maxLength={40}
-                    className="h-11 font-mono"
-                  />
-                  <p className="text-[11px] text-muted-foreground">{t('cpubTrxIdHint')}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Fallback (no gateways configured) */}
-        {!awaiting && data && data.gateways.length === 0 && (
-          <div className="anim-fade-up space-y-2 px-4 pb-4">
-            <p className="text-sm font-bold text-foreground">{t('sendMoneyTo')}</p>
-            {fallbackNumbers.map((n) => (
-              <CopyRow key={n.label} label={n.label} value={n.value} />
-            ))}
-            {fallbackNumbers.length === 0 && (
-              <p className="rounded-xl border border-dashed px-4 py-3 text-center text-xs text-muted-foreground">
-                {t('sendMoneyTo')}
-              </p>
-            )}
-            <ol className="space-y-2 pt-2">
-              {[t('cpubStep1'), t('cpubStep2'), t('cpubStep3'), t('cpubStep4')].map((s, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-muted-foreground">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-extrabold text-primary">
-                    {i + 1}
-                  </span>
-                  {s}
-                </li>
-              ))}
-            </ol>
-          </div>
+        ) : (
+          <p className="rounded-xl border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
+            {t('cpubChooseMethod')}
+          </p>
         )}
       </div>
 
-      {/* Terms + PAY button (reference footer) */}
-      {!awaiting && (
-        <div className="anim-fade-up space-y-2.5">
-          <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-            {t('cpubAgreeTo')}{' '}
-            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="font-bold text-success underline-offset-2 hover:underline">
-              {t('cpubTerms')}
-            </a>
-          </p>
-          <Button
-            className="press h-[52px] w-full gap-2 rounded-xl text-[15px] font-extrabold tracking-wide text-white"
-            style={{ backgroundColor: FALLBACK_COLOR }}
-            onClick={() => submitClaim()}
-            disabled={submitting}
+      {/* reference footer: Pay Now (500.00BDT) */}
+      <p className="pb-4 pt-4 text-center text-sm font-bold text-muted-foreground">
+        {t('cpubPayNowAmount')} ({amountNoSpace(pricing.total, currency)})
+      </p>
+    </div>
+  )
+
+  // ── View 2: per-gateway payment (reference images #2–#4) ──
+  const payView = selectedGateway && (
+    <div className="anim-fade-up">
+      {/* header: back + QR */}
+      <div className="flex items-center justify-between px-3.5 pt-3.5">
+        <CircleIconBtn onClick={() => setView('pick')} label={t('cpubChooseMethod')}>
+          <ArrowLeft className="h-4 w-4" />
+        </CircleIconBtn>
+        <div className="flex items-center gap-1.5">
+          {accountNumber && (gatewayHasQr(selectedGateway) || selectedGateway.qrImage) && (
+            <CircleIconBtn onClick={() => { void openQr() }} label={t('cpubShowQr')}>
+              <QrCode className="h-4 w-4" />
+            </CircleIconBtn>
+          )}
+        </div>
+      </div>
+
+      {/* gateway logo */}
+      <div className="flex justify-center px-4 pb-3 pt-2">
+        {selectedGateway.logoUrl ? (
+           
+          <img
+            src={selectedGateway.logoUrl}
+            alt={selectedGateway.name}
+            className="h-14 w-auto max-w-[190px] rounded-xl bg-white object-contain"
+          />
+        ) : (
+          <GatewayLogo
+            code={selectedGateway.code}
+            mfs={selectedGateway.mfs}
+            color={selectedGateway.color}
+            size={56}
+            variant="wordmark"
+            className="max-w-[190px]"
+          />
+        )}
+      </div>
+
+      {/* PipraPay-exact colored instruction box with inline copy buttons */}
+      {structuredSteps.length > 0 && !showCardForm && (
+        <div className="px-4">
+          <div
+            className="anim-fade-up rounded-2xl px-4 py-4 shadow-brand"
+            style={{ backgroundColor: gwColor, color: gwTextColor }}
+            role="list"
+            aria-label={t('cpubHowToPay')}
           >
-            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            PAY {formatRefMoney(pricing.total, currency)}
-          </Button>
-          {activeTab === 'CARDS' && (
-            <p className="flex items-center justify-center gap-2 pt-1 text-[11px] font-semibold text-muted-foreground">
-              {t('cpubPayWith')} <GatewayCardLogos />
+            <ul className="space-y-2.5">
+              {structuredSteps.map((s, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-[13px] leading-relaxed" role="listitem">
+                  <span
+                    aria-hidden
+                    className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: gwTextColor, opacity: 0.9 }}
+                  />
+                  <span className="min-w-0 flex-1">
+                    {s.text}
+                    {s.strong && <span className="font-extrabold"> {s.strong}</span>}
+                    {s.copy && <StepCopy value={s.copy} tint={gwColor} />}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* bank account details (bank gateways) */}
+      {selectedGateway.category === 'BANK' && selectedGateway.type !== 'API' && (
+        <div className="mt-3 space-y-2 px-4">
+          {selectedGateway.accountNumber && (
+            <CopyRow label={t('cpubAccountNumber')} value={selectedGateway.accountNumber} />
+          )}
+          {(selectedGateway as GatewayLike & { bankName?: string | null }).bankName && (
+            <p className="text-xs text-muted-foreground">
+              {(selectedGateway as GatewayLike & { bankName?: string | null }).bankName}
+              {(selectedGateway as GatewayLike & { branchName?: string | null }).branchName
+                ? ` · ${(selectedGateway as GatewayLike & { branchName?: string | null }).branchName}`
+                : ''}
             </p>
           )}
         </div>
       )}
+
+      {/* send-exactly + charges */}
+      <div className="mt-3 space-y-2.5 px-4">
+        {!showCardForm && (
+          <div
+            className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+            style={{ backgroundColor: `${gwColor}14` }}
+          >
+            <span className="text-xs font-semibold text-muted-foreground">{t('cpubSendExactly')}</span>
+            <span className="tabular text-lg font-extrabold" style={{ color: gwColor }}>
+              {formatRefMoney(pricing.total, currency)}
+            </span>
+          </div>
+        )}
+
+        {rangeWarn && (
+          <p className="rounded-lg bg-warning/15 px-3 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
+            {rangeWarn}
+          </p>
+        )}
+
+        {(pricing.charge > 0 || pricing.discount > 0) && (
+          <div className="space-y-1.5 rounded-xl border bg-muted/30 px-4 py-3 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t('amount')}</span>
+              <span className="tabular font-bold text-foreground">{formatRefMoney(c.amount, currency)}</span>
+            </div>
+            {pricing.charge > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{t('cpubCharge')}</span>
+                <span className="tabular font-bold text-amber-600 dark:text-amber-400">+{formatRefMoney(pricing.charge, currency)}</span>
+              </div>
+            )}
+            {pricing.discount > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{t('cpubYouSave')}</span>
+                <span className="tabular font-bold text-success">−{formatRefMoney(pricing.discount, currency)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between border-t pt-1.5">
+              <span className="font-bold text-foreground">{t('cpubTotal')}</span>
+              <span className="tabular font-extrabold text-foreground">{formatRefMoney(pricing.total, currency)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Card form (Global tab) — reference layout, PCI-safe submit */}
+      {showCardForm && (
+        <div className="anim-fade-up mx-4 mt-3 space-y-3 rounded-xl border bg-muted/20 p-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="pub-card" className="text-xs font-semibold text-foreground/80">{t('cpubCardNumber')}</Label>
+            <div className="relative">
+              <Input
+                id="pub-card"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, '').slice(0, 23))}
+                placeholder="4242 4242 4242 4242"
+                inputMode="numeric"
+                autoComplete="cc-number"
+                className="h-11 pr-24"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                <GatewayCardLogos />
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="pub-exp" className="text-xs font-semibold text-foreground/80">{t('cpubExpiryDate')}</Label>
+              <Input
+                id="pub-exp"
+                value={cardExpiry}
+                onChange={(e) => setCardExpiry(e.target.value.slice(0, 7))}
+                placeholder="MM / YY"
+                inputMode="numeric"
+                autoComplete="cc-exp"
+                className="h-11"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="pub-cvc" className="text-xs font-semibold text-foreground/80">{t('cpubCvc')}</Label>
+              <Input
+                id="pub-cvc"
+                value={cardCvc}
+                onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="•••"
+                inputMode="numeric"
+                autoComplete="cc-csc"
+                className="h-11"
+              />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="pub-name" className="text-xs font-semibold text-foreground/80">{t('cpubNameOnCard')}</Label>
+            <Input
+              id="pub-name"
+              value={cardName}
+              onChange={(e) => setCardName(e.target.value.slice(0, 60))}
+              placeholder="AHMED RAHMAN"
+              autoComplete="cc-name"
+              className="h-11 uppercase"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch id="pub-remember" checked={rememberCard} onCheckedChange={setRememberCard} />
+            <Label htmlFor="pub-remember" className="text-xs text-muted-foreground">
+              {t('cpubRememberCard')}{' '}
+              <span className="cursor-pointer font-semibold text-success underline-offset-2 hover:underline">{t('cpubLearnMore')}</span>
+            </Label>
+          </div>
+        </div>
+      )}
+
+      {/* custom fields */}
+      {customFields.length > 0 && (
+        <div className="mx-4 mt-3 space-y-3">
+          <p className="text-xs font-bold text-foreground">{t('cpubAdditionalInfo')}</p>
+          {customFields.map((f) => (
+            <div key={f.name} className="grid gap-1.5">
+              <Label htmlFor={`cf-${f.name}`} className="text-xs font-semibold text-foreground/80">
+                {f.label} {f.required && <span className="text-destructive">*</span>}
+              </Label>
+              <Input
+                id={`cf-${f.name}`}
+                value={answers[f.name] ?? ''}
+                onChange={(e) => setAnswers((a) => ({ ...a, [f.name]: e.target.value }))}
+                maxLength={300}
+                className="h-11"
+                aria-invalid={!!fieldErrors[f.name]}
+              />
+              {fieldErrors[f.name] && (
+                <p className="text-[11px] font-semibold text-destructive">{fieldErrors[f.name]}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Transaction/Order ID + sender number */}
+      {!showCardForm && (
+        <div className="mx-4 mt-3 grid gap-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="pub-trxid" className="text-sm font-semibold text-foreground">
+              {isBinance ? t('cpubOrderIdField') : t('cpubTrxIdField')}
+            </Label>
+            <Input
+              id="pub-trxid"
+              value={trxId}
+              onChange={(e) => setTrxId(e.target.value)}
+              placeholder={isBinance ? t('cpubOrderIdPh') : t('cpubTrxIdPh')}
+              maxLength={40}
+              className="h-11"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="pub-sender" className="text-sm font-semibold text-foreground">
+              {t('cpubYourBrandNumber').replace('{brand}', gwBrandName)} <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="pub-sender"
+              value={senderNumber}
+              onChange={(e) => setSenderNumber(e.target.value)}
+              placeholder={t('cpubYourNumberPh')}
+              inputMode="tel"
+              autoComplete="tel"
+              className="h-11"
+            />
+            <p className="text-[11px] text-muted-foreground">{t('cpubYourNumberHint')}</p>
+          </div>
+        </div>
+      )}
+
+      {/* terms + Verify button in the gateway's own colors */}
+      <div className="mx-4 space-y-2.5 pb-4 pt-4">
+        <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+          {t('cpubAgreeTo')}{' '}
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="font-bold text-success underline-offset-2 hover:underline">
+            {t('cpubTerms')}
+          </a>
+        </p>
+        <Button
+          className="press h-[52px] w-full gap-2 rounded-xl text-[15px] font-extrabold tracking-wide"
+          style={{ backgroundColor: gwButtonColor, color: gwButtonText }}
+          onClick={() => submitClaim()}
+          disabled={submitting}
+        >
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isApiGw ? t('cpubPayNow') : t('cpubVerify')}
+        </Button>
+        {showCardForm && (
+          <p className="flex items-center justify-center gap-2 pt-1 text-[11px] font-semibold text-muted-foreground">
+            {t('cpubPayWith')} <GatewayCardLogos />
+          </p>
+        )}
+      </div>
+    </div>
+  )
+
+  // ── No gateways configured → fallback numbers flow ──
+  const fallbackView = data && data.gateways.length === 0 && (
+    <div className="anim-fade-up space-y-2 px-4 pb-4 pt-4">
+      <p className="text-sm font-bold text-foreground">{t('sendMoneyTo')}</p>
+      {fallbackNumbers.map((n) => (
+        <CopyRow key={n.label} label={n.label} value={n.value} />
+      ))}
+      {fallbackNumbers.length === 0 && (
+        <p className="rounded-xl border border-dashed px-4 py-3 text-center text-xs text-muted-foreground">
+          {t('sendMoneyTo')}
+        </p>
+      )}
+      <ol className="space-y-2 pt-2">
+        {[t('cpubStep1'), t('cpubStep2'), t('cpubStep3'), t('cpubStep4')].map((s, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-muted-foreground">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-extrabold text-primary">
+              {i + 1}
+            </span>
+            {s}
+          </li>
+        ))}
+      </ol>
+      <p className="pt-1 text-center text-[11px] text-muted-foreground">
+        {t('cpubAgreeTo')}{' '}
+        <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="font-bold text-success underline-offset-2 hover:underline">
+          {t('cpubTerms')}
+        </a>
+      </p>
+    </div>
+  )
+
+  // ── Payment panel: picker ⇄ per-gateway, shared by mobile & desktop column ──
+  const payPanel = (
+    <div className="rounded-2xl border bg-card shadow-brand-lg">
+      {awaiting ? null : data && data.gateways.length > 0
+        ? (view === 'pick' ? pickView : payView)
+        : fallbackView}
     </div>
   )
 
@@ -918,6 +1097,9 @@ export function CheckoutPublicView({ token }: { token: string }) {
               {senderNumber ? `+88 ${senderNumber}` : ''}
               {trxId.trim() ? ` · ${trxId.trim()}` : ''}
             </div>
+            <p className="mt-2 text-[11px] font-semibold text-muted-foreground">
+              {t('cpubMethod')}: {selectedGateway?.displayName || selectedGateway?.name} · {methodChip}
+            </p>
             {pollTimedOut && (
               <div className="mt-4 space-y-2">
                 <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">{t('cpubPollSlow')}</p>
@@ -967,7 +1149,7 @@ export function CheckoutPublicView({ token }: { token: string }) {
               expiresLabel={expiresChip}
               extraDetails={[
                 ...(selectedGateway
-                  ? [{ label: t('cpubMethodLabel'), value: `${selectedGateway.name} · ${methodChip}` }]
+                  ? [{ label: t('cpubMethodLabel'), value: `${selectedGateway.displayName || selectedGateway.name} · ${methodChip}` }]
                   : []),
                 ...customFields
                   .filter((f) => answers[f.name]?.trim())
@@ -986,7 +1168,7 @@ export function CheckoutPublicView({ token }: { token: string }) {
             </div>
           </div>
 
-          {/* Right — quick payment flow */}
+          {/* Right — gateway picker / per-gateway payment flow */}
           <div className={cn('mx-auto w-full', awaiting ? 'max-w-md' : 'max-w-md lg:max-w-none')}>
             {payPanel}
             <div className="mt-4 lg:hidden">
@@ -1002,11 +1184,12 @@ export function CheckoutPublicView({ token }: { token: string }) {
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="max-w-[320px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-center">{selectedGateway?.name ?? t('cpubShowQr')}</DialogTitle>
+            <DialogTitle className="text-center">{selectedGateway?.displayName || selectedGateway?.name || t('cpubShowQr')}</DialogTitle>
             <DialogDescription className="text-center">{t('cpubScanHint')}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-3 pb-2">
             {qrData ? (
+               
               <img src={qrData} alt="Payment QR" className="h-56 w-56 rounded-xl border bg-white p-2" />
             ) : (
               <Skeleton className="h-56 w-56 rounded-xl" />
@@ -1022,6 +1205,51 @@ export function CheckoutPublicView({ token }: { token: string }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Payment details dialog (Info icon) */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{t('cpubPaymentDetails')}</DialogTitle>
+            <DialogDescription>{c.title}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2.5 pb-1 text-sm">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 px-4 py-3">
+              <span className="text-xs font-semibold text-muted-foreground">{t('amount')}</span>
+              <span className="tabular text-base font-extrabold text-foreground">{formatRefMoney(c.amount, currency)}</span>
+            </div>
+            {c.description && (
+              <p className="text-xs leading-relaxed text-muted-foreground">{c.description}</p>
+            )}
+            {selectedGateway && (
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="font-semibold text-muted-foreground">{t('cpubMethodLabel')}</span>
+                <span className="font-bold text-foreground">{selectedGateway.displayName || selectedGateway.name}</span>
+              </div>
+            )}
+            {expiresChip && (
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                <Clock className="h-3.5 w-3.5" /> {expiresChip}
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Support dialog (Headphones icon) */}
+      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{t('needHelp')}</DialogTitle>
+            <DialogDescription>{t('cpubContactSupport')}</DialogDescription>
+          </DialogHeader>
+          <div className="pb-1">
+            <SupportBlock brand={brand} faqs={faqs} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
+
+

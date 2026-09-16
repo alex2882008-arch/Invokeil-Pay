@@ -9,12 +9,13 @@ import {
   LogOut, FileText, Link2, Contact2, Waypoints, Webhook, BookOpen, BarChart3, Network, Search,
   Command as CommandIcon, Monitor, Moon, Sun, Signpost, Loader2, Mail, MessageSquareText, Bell,
   Workflow, Undo2, Landmark, Calculator, Repeat, ShieldAlert, BadgeCheck, IdCard, ShieldCheck,
-  Activity, Radar, DatabaseBackup, Blocks, Building2, TerminalSquare,
+  Activity, Radar, DatabaseBackup, Blocks, Building2, TerminalSquare, UserRound,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLang, Lang } from '@/lib/i18n'
 import { BrandLogo } from './ui-bits'
 import { CommandPalette } from './command-palette'
+import { ProfileDialog } from './profile-dialog'
 import type { SessionUser } from '@/lib/auth'
 import { useTheme } from '@/hooks/use-theme'
 import { isAdminRole } from '@/lib/roles'
@@ -247,6 +248,7 @@ export function AdminShell({
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [online, setOnline] = useState(true)
   const [appMode, setAppMode] = useState<string | null>(null)
@@ -372,6 +374,15 @@ export function AdminShell({
             </Button>
             <ThemeToggle />
             <LangToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setProfileOpen(true)}
+              aria-label={t('profile')}
+              title={t('profile')}
+            >
+              <UserRound className="h-4.5 w-4.5 text-muted-foreground" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={signOut} disabled={signingOut} aria-label={t('signOut')} title={t('signOut')}>
               {signingOut ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <LogOut className="h-4.5 w-4.5 text-muted-foreground" />}
             </Button>
@@ -424,6 +435,9 @@ export function AdminShell({
       </nav>
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} user={user} />
+
+      {/* Profile management — own account, password & 2FA status */}
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
   )
 }

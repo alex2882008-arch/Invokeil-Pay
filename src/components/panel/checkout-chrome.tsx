@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import {
-  ChevronDown, Clock, Copy, CreditCard, Globe, Landmark, Mail, MessageCircle,
+  ChevronDown, Clock, Globe, Landmark, Mail, MessageCircle,
   Phone, Send, ShieldCheck, Smartphone, User,
 } from 'lucide-react'
 import {
@@ -30,16 +30,21 @@ export interface BrandLike {
 export interface GatewayLike {
   code: string
   name: string
+  displayName?: string | null
   mfs: string
   category: string
   type: string
   accountType: string
   color: string
   textColor: string
+  buttonColor?: string | null
+  buttonText?: string | null
+  logoUrl?: string | null
   icon: string | null
   accountNumber: string | null
   instructions: string | null
   qrImage?: string | null
+  allowPending?: string
   minAmount: number | null
   maxAmount: number | null
   chargeFixed: number
@@ -48,7 +53,7 @@ export interface GatewayLike {
   discountPercent: number
 }
 
-export type CheckoutTab = 'CARDS' | 'MOBILE' | 'NET_BANKING'
+export type CheckoutTab = 'MOBILE' | 'NET_BANKING' | 'GLOBAL'
 
 /** "BDT 11,900.00" — reference-style money format. */
 export function formatRefMoney(n: number, currency = 'BDT'): string {
@@ -71,17 +76,17 @@ export function accountTypeLabel(accountType: string, t: (k: string) => string):
   return t('cpubPersonal')
 }
 
-/** Gateway category → reference tab. */
+/** Gateway category → reference tab (Mobile Banking / Net Banking / Global). */
 export function tabOf(g: GatewayLike): CheckoutTab {
   if (g.category === 'BANK') return 'NET_BANKING'
-  if (g.category === 'GLOBAL') return 'CARDS'
+  if (g.category === 'GLOBAL') return 'GLOBAL'
   return 'MOBILE'
 }
 
 export const TAB_META: Array<{ id: CheckoutTab; icon: React.ElementType; labelKey: string }> = [
-  { id: 'CARDS', icon: CreditCard, labelKey: 'cpubTabCards' },
-  { id: 'MOBILE', icon: Smartphone, labelKey: 'cpubTabMobile' },
-  { id: 'NET_BANKING', icon: Landmark, labelKey: 'cpubTabNetBanking' },
+  { id: 'MOBILE', icon: Smartphone, labelKey: 'cpubTabMobileBanking' },
+  { id: 'NET_BANKING', icon: Landmark, labelKey: 'cpubTabNetBankingFull' },
+  { id: 'GLOBAL', icon: Globe, labelKey: 'cpubTabGlobalFull' },
 ]
 
 // ── Top bar ──────────────────────────────────────────────────────────────────
@@ -278,51 +283,41 @@ export function MethodTabs({
   )
 }
 
-// ── Gateway logo grid (white tiles + selection check badge) ─────────────────
+// ── Gateway logo grid (reference: white tiles + gateway name below) ─────────
 
 export function GatewayTileGrid({
   gateways,
-  selectedCode,
-  onSelect,
+  onPick,
 }: {
   gateways: GatewayLike[]
-  selectedCode: string | null
-  onSelect: (code: string) => void
+  onPick: (code: string) => void
 }) {
-  const { t } = useLang()
   return (
-    <div className="anim-fade-up grid grid-cols-2 gap-2 sm:grid-cols-3" role="listbox" aria-label="Payment methods">
-      {gateways.map((g, i) => {
-        const selected = selectedCode === g.code
-        return (
-          <button
-            key={g.code}
-            type="button"
-            role="option"
-            aria-selected={selected}
-            onClick={() => onSelect(g.code)}
-            style={{ animationDelay: `${Math.min(i * 30, 240)}ms` }}
-            className={cn(
-              'press anim-fade-up hover-lift relative flex h-[68px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border bg-card px-2 transition-shadow duration-200',
-              selected
-                ? 'border-transparent shadow-[0_0_0_2px_var(--primary)]'
-                : 'border-border hover:border-primary/40'
-            )}
-          >
-            <GatewayLogo code={g.code} mfs={g.mfs} color={g.color} size={30} variant="wordmark" className="max-w-[82%]" />
-            <span className="max-w-full truncate text-[10px] font-bold leading-none text-muted-foreground">
-              {accountTypeLabel(g.accountType, t)}
+    <div className="grid grid-cols-3 gap-2" role="listbox" aria-label="Payment methods">
+      {gateways.map((g, i) => (
+        <button
+          key={g.code}
+          type="button"
+          role="option"
+          aria-selected={false}
+          aria-label={g.displayName || g.name}
+          onClick={() => onPick(g.code)}
+          style={{ animationDelay: `${Math.min(i * 30, 240)}ms` }}
+          className="press anim-fade-up hover-lift flex h-[74px] flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border bg-card px-2 transition-shadow duration-200 hover:border-primary/40"
+        >
+          {g.logoUrl ? (
+            <span className="flex h-7 max-w-[86%] items-center justify-center">
+              { }
+              <img src={g.logoUrl} alt="" className="max-h-7 w-auto max-w-full object-contain" />
             </span>
-            {selected && (
-              <span className="anim-scale-in absolute right-1.5 top-1.5 flex items-center justify-center rounded-full bg-success text-white shadow-sm" style={{ height: 18, width: 18 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" className="h-2.5 w-2.5">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-              </span>
-            )}
-          </button>
-        )
-      })}
+          ) : (
+            <GatewayLogo code={g.code} mfs={g.mfs} color={g.color} size={26} variant="wordmark" className="max-w-[86%]" />
+          )}
+          <span className="max-w-full truncate text-[10px] font-semibold leading-none text-muted-foreground">
+            {g.displayName || g.name}
+          </span>
+        </button>
+      ))}
     </div>
   )
 }
@@ -346,7 +341,6 @@ export function InlineCopy({ value, className }: { value: string; className?: st
     <span className={cn('inline-flex items-center gap-1.5', className)}>
       <span className="min-w-0 break-all font-mono text-sm font-bold tracking-wide text-foreground">{value}</span>
       <CopyButton value={value} compact />
-      <Copy className="hidden" aria-hidden />
     </span>
   )
 }

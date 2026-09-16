@@ -112,6 +112,24 @@ export const PUBLIC_EN: Record<string, string> = {
   cpubPayNow: 'Pay now',
   cpubToggleTheme: 'Toggle theme',
   cpubToggleLang: 'Switch language',
+
+  // Reference-style picker + per-gateway payment view
+  cpubTabMobileBanking: 'Mobile Banking',
+  cpubTabNetBankingFull: 'Net Banking',
+  cpubTabGlobalFull: 'Global',
+  cpubPayNowAmount: 'Pay Now',
+  cpubVerify: 'Verify',
+  cpubTrxIdField: 'Transaction ID',
+  cpubTrxIdPh: 'Enter transaction ID',
+  cpubOrderIdField: 'Order ID',
+  cpubOrderIdPh: 'Enter Order ID',
+  cpubYourBrandNumber: 'Your {brand} Number',
+  cpubYourNumberPh: '01XXXXXXXXX',
+  cpubScanInstead: 'Scan QR instead',
+  cpubPendingDisabled: 'This gateway requires instant verification — your payment could not be verified yet. Please wait a moment and try again.',
+  cpubClose: 'Close',
+  cpubPaymentDetails: 'Payment details',
+  cpubMethod: 'Method',
 }
 
 export const PUBLIC_BN: Record<string, string> = {
@@ -211,4 +229,22 @@ export const PUBLIC_BN: Record<string, string> = {
   cpubPayNow: 'পরিশোধ করুন',
   cpubToggleTheme: 'থিম পরিবর্তন',
   cpubToggleLang: 'ভাষা পরিবর্তন',
+
+  // Reference-style picker + per-gateway payment view
+  cpubTabMobileBanking: 'মোবাইল ব্যাংকিং',
+  cpubTabNetBankingFull: 'নেট ব্যাংকিং',
+  cpubTabGlobalFull: 'গ্লোবাল',
+  cpubPayNowAmount: 'পে নাউ',
+  cpubVerify: 'যাচাই করুন',
+  cpubTrxIdField: 'ট্রানজ্যাকশন আইডি',
+  cpubTrxIdPh: 'ট্রানজ্যাকশন আইডি লিখুন',
+  cpubOrderIdField: 'অর্ডার আইডি',
+  cpubOrderIdPh: 'অর্ডার আইডি লিখুন',
+  cpubYourBrandNumber: 'আপনার {brand} নম্বর',
+  cpubYourNumberPh: '01XXXXXXXXX',
+  cpubScanInstead: 'কিউআর স্ক্যান করুন',
+  cpubPendingDisabled: 'এই গেটওয়েতে তাৎক্ষণিক যাচাই প্রয়োজন — আপনার পেমেন্ট এখনও যাচাই হয়নি। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।',
+  cpubClose: 'বন্ধ করুন',
+  cpubPaymentDetails: 'পেমেন্ট বিবরণ',
+  cpubMethod: 'মাধ্যম',
 }

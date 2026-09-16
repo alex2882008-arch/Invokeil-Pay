@@ -28,7 +28,7 @@ const BRANDS: Record<string, BrandMeta> = {
   TELECASH: { mono: 'tc', color: '#1B9AD2', color2: '#6cc8f5', label: 'TeleCash' },
   MCASH: { mono: 'mc', color: '#00723F', color2: '#3fbf82', label: 'mCash' },
   OKWALLET: { mono: 'ok', color: '#F1592A', color2: '#ff9d70', label: 'OK Wallet' },
-  PATHAOPAY: { mono: 'P', color: '#E2151C', color2: '#ff6b6b', label: 'Pathao Pay' },
+  PATHAOPAY: { mono: 'P', color: '#2A6BE8', color2: '#7aa7f2', label: 'Pathao Pay' },
   CELLFIN: { mono: 'cf', color: '#00693E', color2: '#37a878', label: 'CellFin' },
   IPAY: { mono: 'ip', color: '#019789', color2: '#4fc9bc', label: 'iPay' },
   SURECASH: { mono: 'sc', color: '#7C2582', color2: '#c168c9', label: 'SureCash' },

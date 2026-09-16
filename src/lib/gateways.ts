@@ -128,7 +128,7 @@ const mfsBrands: MfsBrandDef[] = [
     },
   },
   {
-    mfs: 'PATHAOPAY', name: 'Pathao Pay', color: '#E2151C', icon: 'pp',
+    mfs: 'PATHAOPAY', name: 'PathaoPay', color: '#2A6BE8', icon: 'pp',
     tiers: {
       PERSONAL: { method: 'SEND_MONEY', qr: true },
       MERCHANT: { method: 'PAYMENT', qr: true },
@@ -273,7 +273,7 @@ export function mfsColor(mfs: string): string {
 
 export const MFS_COLORS: Record<string, string> = {
   BKASH: '#E2136E', NAGAD: '#F6921E', ROCKET: '#8C3494', UPAY: '#00A99D', TAP: '#0A6EDE',
-  TELECASH: '#1B9AD2', MCASH: '#00723F', OKWALLET: '#F1592A', PATHAOPAY: '#E2151C',
+  TELECASH: '#1B9AD2', MCASH: '#00723F', OKWALLET: '#F1592A', PATHAOPAY: '#2A6BE8',
   CELLFIN: '#00693E', IPAY: '#019789', SURECASH: '#7C2582', MEGHNAPAY: '#00529B',
   TRUSTMONEY: '#003B71', DMONEY: '#E4136E', AWALLET: '#6B2D8B', BANK: '#475569', GLOBAL: '#635BFF', OTHER: '#94A3B8',
 }
@@ -431,7 +431,6 @@ function manualSteps(code: string, v: InstructionVars, lang: Lang): string[] {
         isBn ? 'আপনার Binance মোবাইল অ্যাপ বা ওয়েবসাইটে যান' : 'Go to your Binance Mobile App or Website',
         isBn ? '"Send to Binance user" নির্বাচন করুন' : 'Choose "Send to Binance user"',
         isBn ? `Binance UID লিখুন "${dest}"` : `Enter the Binance UID "${dest}"`,
-        isBn ? 'অথবা কিউআর কোড স্ক্যান করুন' : 'Or scan the QR Code',
         isBn ? `পরিমাণ লিখুন: ${amt}` : `Enter amount: ${amt}`,
         check,
         final,
@@ -548,6 +547,347 @@ export function gatewayInstructions(
     'Use your name as the reference',
     'Submit the transaction reference below',
   ]
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Structured steps — same PipraPay-exact flows, but each step carries its
+//  inline copy value (number / amount / UID) so the payment page can render
+//  copy buttons inside the colored instruction box (reference screenshots).
+// ════════════════════════════════════════════════════════════════════════════
+
+export interface InstructionStep {
+  text: string
+  /** Value offered as an inline copy button (receiving number / amount / UID). */
+  copy?: string
+  /** Value rendered bold inside the sentence (e.g. the amount). */
+  strong?: string
+}
+
+function mfsStructuredSteps(
+  method: GatewayMethod,
+  brand: string,
+  hasQr: boolean,
+  v: InstructionVars,
+  lang: Lang
+): InstructionStep[] {
+  const isBn = lang === 'bn'
+  const m = METHOD_TEXT[method]
+  const amt = `${v.amount ?? ''} ${v.currency ?? 'BDT'}`
+  const steps: InstructionStep[] = []
+  steps.push({ text: isBn ? `আপনার ${brand} মোবাইল অ্যাপে যান।` : `Go to your ${brand} Mobile App.` })
+  steps.push({ text: isBn ? m.bn : `Choose "${m.en}"` })
+  if (method === 'FUND_TRANSFER') {
+    steps.push({ text: isBn ? '"CellFin" নির্বাচন করুন' : 'Choose "CellFin"' })
+  }
+  steps.push({
+    text: isBn ? 'নম্বর লিখুন:' : 'Enter the Number:',
+    copy: v.number ?? '',
+  })
+  if (hasQr) steps.push({ text: isBn ? 'অথবা কিউআর কোড স্ক্যান করুন' : 'Or Scan the QR Code' })
+  steps.push({
+    text: isBn ? 'পরিমাণ লিখুন:' : 'Enter the Amount:',
+    copy: amt,
+    strong: amt,
+  })
+  steps.push({ text: isBn ? `এখন নিশ্চিত করতে আপনার ${brand} পিন লিখুন।` : `Now enter your ${brand} PIN to confirm.` })
+  steps.push({
+    text: isBn
+      ? 'ট্রানজ্যাকশন আইডি নিচের বক্সে লিখুন এবং যাচাই করুন চাপুন।'
+      : 'Put the Transaction ID in the box below and press Verify',
+  })
+  return steps
+}
+
+function manualStructuredSteps(code: string, v: InstructionVars, lang: Lang): InstructionStep[] {
+  const plain = manualSteps(code, v, lang)
+  const dest = v.destination ?? v.number ?? ''
+  const amt = `${v.amount ?? ''} ${v.currency ?? 'BDT'}`
+  const isBn = lang === 'bn'
+  /** Split "Enter amount: 500.00 BDT" → { text: 'Enter amount:', strong: amt }. */
+  const amountStep = (text: string): InstructionStep => {
+    const idx = text.lastIndexOf(amt)
+    if (idx > 0) return { text: text.slice(0, idx).trimEnd(), copy: amt, strong: amt }
+    return { text, copy: amt, strong: amt }
+  }
+  return plain.map((text): InstructionStep => {
+    if (code === 'BINANCE_PAY' || code === 'BINANCE_PERSONAL') {
+      if (text.includes('UID')) return { text, copy: dest }
+      if (text.startsWith(isBn ? 'পরিমাণ লিখুন' : 'Enter amount')) return amountStep(text)
+    }
+    if ((code === 'PAYPAL' || code === 'PAYONEER') && (text.includes('email') || text.includes('ইমেইল'))) {
+      return { text, copy: dest }
+    }
+    if (code === 'PAYEER' && text.includes('account ID')) return { text, copy: dest }
+    if (code === 'WISE' && text.includes('Wise account')) return { text, copy: dest }
+    if (code === 'TAPTAP_SEND' && text.includes('payout number')) return { text, copy: dest }
+    if (
+      ['GOOGLE_PAY', 'APPLE_PAY', 'SAMSUNG_PAY'].includes(code) &&
+      text.startsWith(isBn ? 'নম্বর/হ্যান্ডেলে' : 'Send to the number')
+    ) {
+      return { text, copy: dest }
+    }
+    if (text.startsWith(isBn ? 'পরিমাণ লিখুন' : 'Enter amount')) return amountStep(text)
+    if (text.startsWith(isBn ? 'পরিমাণ' : 'Enter the amount')) return amountStep(text)
+    return { text }
+  })
+}
+
+/**
+ * Structured per-gateway steps for the payment page's colored instruction
+ * box. MFS families get the PipraPay-exact flow with inline copy targets;
+ * manual flows carry copy on the destination/amount; everything else falls
+ * back to plain text steps.
+ */
+export function gatewayStructuredSteps(
+  gw: InstructionGateway,
+  lang: Lang,
+  vars: InstructionVars = {}
+): InstructionStep[] {
+  const code = gw.code ?? ''
+  const mfs = (gw.mfs ?? '').toUpperCase()
+  const type = (gw.type ?? '').toUpperCase()
+  const method = (gw.method ?? '') as GatewayMethod
+
+  // Binance (even API-verified) follows the reference "Send to Binance user"
+  // flow with the UID + amount copy targets.
+  if (code === 'BINANCE_PERSONAL' || code === 'BINANCE_PAY') {
+    return manualStructuredSteps('BINANCE_PAY', vars, lang)
+  }
+
+  if (type === 'API' || method === 'API_CHECKOUT') {
+    return apiSteps(gw.name ?? 'the gateway', lang).map((text) => ({ text }))
+  }
+
+  const isMfsLike = ['SEND_MONEY', 'CASH_OUT', 'MAKE_PAYMENT', 'PAYMENT', 'FUND_TRANSFER'].includes(method)
+  if (isMfsLike) {
+    const brand = brandDisplayName(mfs, gw.name ?? '')
+    return mfsStructuredSteps(method, brand, gw.hasQr ?? false, vars, lang)
+  }
+
+  if (method === 'MANUAL_TRANSFER') return manualStructuredSteps(code, vars, lang)
+
+  if (method === 'CARD' || code === 'CARD_MANUAL' || code === 'STRIPE') {
+    return (lang === 'bn'
+      ? ['কার্ড নম্বর ও তথ্য দিন এবং Pay চাপুন', 'পেমেন্ট মার্চেন্ট দ্বারা যাচাই করা হবে']
+      : ['Enter your card details and press Pay', 'The payment is verified by the merchant']
+    ).map((text) => ({ text }))
+  }
+
+  // Bank transfer
+  if (lang === 'bn') {
+    return [
+      'উপরে দেখানো ব্যাংক অ্যাকাউন্টে সঠিক পরিমাণ ট্রান্সফার করুন',
+      'রেফারেন্স হিসেবে আপনার নাম ব্যবহার করুন',
+      'নিচে ট্রানজ্যাকশন রেফারেন্স জমা দিন',
+    ].map((text) => ({ text }))
+  }
+  if (gw.instructions && gw.instructions.trim()) {
+    return gw.instructions
+      .split('\n')
+      .map((l) => l.replace(/^\s*\d+[.)]\s*/, '').trim())
+      .filter(Boolean)
+      .map((text) => ({ text }))
+  }
+  return [
+    'Transfer the exact amount to the bank account shown above',
+    'Use your name as the reference',
+    'Submit the transaction reference below',
+  ].map((text) => ({ text }))
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Per-gateway configuration field metadata — drives the PipraPay-style
+//  "Gateway Setting" form (Information / Assets / Colors / Configuration).
+//  Configuration fields are gateway-family specific; secret fields are masked
+//  on every API read and keep their stored value when submitted empty.
+// ════════════════════════════════════════════════════════════════════════════
+
+export interface ConfigFieldDef {
+  key: string
+  label: string
+  type: 'text' | 'password' | 'number' | 'select' | 'textarea'
+  required?: boolean
+  options?: Array<{ value: string; label: string }>
+  placeholder?: string
+  /** Stored in the config JSON vault (masked on read, keep-if-empty on write). */
+  secret?: boolean
+  hint?: string
+}
+
+const MODE_OPTIONS = [
+  { value: 'LIVE', label: 'Live' },
+  { value: 'SANDBOX', label: 'Sandbox / Test' },
+]
+
+/** Well-known config-JSON keys used across gateway families. */
+export const CONFIG_KEYS = {
+  UID: 'binance_uid',
+  API_KEY: 'api_key',
+  SECRET_KEY: 'secret_key',
+  USERNAME: 'username',
+  PASSWORD: 'password',
+  APP_KEY: 'app_key',
+  APP_SECRET: 'app_secret_key',
+  IPN_SECRET: 'ipn_secret_key',
+  STORE_ID: 'store_id',
+  STORE_PASSWORD: 'store_password',
+  PRODUCT_CATEGORY: 'product_category',
+  SIGNATURE_KEY: 'signature_key',
+  PREFIX: 'prefix',
+  MERCHANT_ID: 'merchant_id',
+  MERCHANT_PASSWORD: 'merchant_password',
+  CHECKOUT_ITEMS: 'checkout_items',
+  PAY_WITH_CHARGE: 'pay_with_charge',
+  INVOICE_USERNAME: 'invoice_username',
+  API_TOKEN: 'api_token',
+  HASHKEY: 'hashkey',
+  CLIENT_ID: 'client_id',
+  CLIENT_SECRET: 'client_secret',
+  WEBHOOK_SECRET: 'webhook_secret',
+  FEE_PAYER: 'fee_paid_by_payer',
+  UNDER_PAID: 'under_paid_coverage',
+  MIXED: 'mixed_payment',
+} as const
+
+function apiFieldsToConfigDefs(apiFields: string[], code: string): ConfigFieldDef[] {
+  const defs: ConfigFieldDef[] = []
+  const labels: Record<string, string> = {
+    [CONFIG_KEYS.STORE_ID]: 'Store ID',
+    [CONFIG_KEYS.STORE_PASSWORD]: 'Store Password',
+    [CONFIG_KEYS.PRODUCT_CATEGORY]: 'Product Category',
+    [CONFIG_KEYS.SIGNATURE_KEY]: 'Signature Key',
+    [CONFIG_KEYS.PREFIX]: 'Prefix',
+    [CONFIG_KEYS.USERNAME]: 'Username',
+    [CONFIG_KEYS.PASSWORD]: 'Password',
+    [CONFIG_KEYS.MERCHANT_ID]: 'Merchant ID',
+    [CONFIG_KEYS.MERCHANT_PASSWORD]: 'Merchant Password',
+    [CONFIG_KEYS.CHECKOUT_ITEMS]: 'Checkout Items',
+    [CONFIG_KEYS.PAY_WITH_CHARGE]: 'Pay With Charge',
+    [CONFIG_KEYS.INVOICE_USERNAME]: 'Invoice Username',
+    [CONFIG_KEYS.API_TOKEN]: 'API Token',
+    [CONFIG_KEYS.HASHKEY]: 'Hash Key',
+    [CONFIG_KEYS.CLIENT_ID]: 'Client ID',
+    [CONFIG_KEYS.CLIENT_SECRET]: 'Client Secret',
+    [CONFIG_KEYS.WEBHOOK_SECRET]: 'Webhook Secret',
+    [CONFIG_KEYS.API_KEY]: 'Api Key',
+    [CONFIG_KEYS.SECRET_KEY]: 'Secret Key',
+    [CONFIG_KEYS.IPN_SECRET]: 'IPN Secret Key',
+    [CONFIG_KEYS.FEE_PAYER]: 'Fee Paid By Payer',
+    [CONFIG_KEYS.UNDER_PAID]: 'Under Paid Coverage',
+    [CONFIG_KEYS.MIXED]: 'Mixed Payment',
+    [CONFIG_KEYS.APP_KEY]: 'App Key',
+    [CONFIG_KEYS.APP_SECRET]: 'App Secret Key',
+  }
+  const secrets = new Set<string>([
+    CONFIG_KEYS.STORE_PASSWORD, CONFIG_KEYS.PASSWORD, CONFIG_KEYS.MERCHANT_PASSWORD,
+    CONFIG_KEYS.API_TOKEN, CONFIG_KEYS.HASHKEY, CONFIG_KEYS.CLIENT_SECRET,
+    CONFIG_KEYS.WEBHOOK_SECRET, CONFIG_KEYS.API_KEY, CONFIG_KEYS.SECRET_KEY,
+    CONFIG_KEYS.IPN_SECRET, CONFIG_KEYS.APP_KEY, CONFIG_KEYS.APP_SECRET,
+  ])
+  const selects: Record<string, Array<{ value: string; label: string }>> = {
+    mode: MODE_OPTIONS,
+    [CONFIG_KEYS.PAY_WITH_CHARGE]: [{ value: 'merchant', label: 'Merchant' }, { value: 'customer', label: 'Customer' }],
+    [CONFIG_KEYS.UNDER_PAID]: [{ value: 'from_income', label: 'From Income' }, { value: 'none', label: 'None' }],
+    [CONFIG_KEYS.MIXED]: [{ value: 'auto', label: 'Auto' }, { value: 'disabled', label: 'Disabled' }],
+    [CONFIG_KEYS.FEE_PAYER]: [{ value: 'merchant', label: 'Merchant' }, { value: 'customer', label: 'Customer' }],
+  }
+  for (const f of apiFields) {
+    if (f === 'mode') {
+      defs.push({ key: 'mode', label: 'Mode', type: 'select', required: true, options: MODE_OPTIONS })
+      continue
+    }
+    defs.push({
+      key: f,
+      label: labels[f] ?? f,
+      type: selects[f] ? 'select' : secrets.has(f) ? 'password' : 'text',
+      required: !secrets.has(f) && !selects[f],
+      options: selects[f],
+      secret: secrets.has(f),
+    })
+  }
+  void code
+  return defs
+}
+
+/**
+ * Configuration section fields for a gateway (PipraPay "Configuration" card).
+ * The universal controls (Mobile/Account number, Allow Pending Payment,
+ * Supported Languages, IPN URL, QR upload) are rendered by the admin form
+ * itself — only the gateway-specific credentials come back here.
+ */
+export function gatewayConfigFields(g: {
+  code?: string | null
+  mfs?: string | null
+  category?: string | null
+  type?: string | null
+  accountType?: string | null
+  method?: string | null
+}): ConfigFieldDef[] {
+  const code = (g.code ?? '').toUpperCase()
+  const seed = GATEWAY_CATALOG.find((s) => s.code === code)
+  const type = (g.type ?? seed?.type ?? '').toUpperCase()
+  const category = (g.category ?? seed?.category ?? '').toUpperCase()
+  const method = (g.method ?? seed?.method ?? '').toUpperCase()
+
+  // bKash tokenized (and any tokenized-style MFS API)
+  if (code === 'BKASH_TOKENIZED') {
+    return [
+      { key: CONFIG_KEYS.USERNAME, label: 'Username', type: 'text', required: true },
+      { key: CONFIG_KEYS.PASSWORD, label: 'Password', type: 'password', required: true, secret: true },
+      { key: CONFIG_KEYS.APP_KEY, label: 'App Key', type: 'password', required: true, secret: true },
+      { key: CONFIG_KEYS.APP_SECRET, label: 'App Secret Key', type: 'password', required: true, secret: true },
+      { key: 'mode', label: 'Mode', type: 'select', required: true, options: MODE_OPTIONS },
+    ]
+  }
+
+  // Binance personal — UID is public (shown on the payment page), keys are secret
+  if (code === 'BINANCE_PERSONAL' || code === 'BINANCE_PAY') {
+    return [
+      { key: CONFIG_KEYS.UID, label: 'Binance UID', type: 'text', required: true, hint: 'Shown on the payment page' },
+      { key: CONFIG_KEYS.API_KEY, label: 'Api Key', type: 'password', required: false, secret: true },
+      { key: CONFIG_KEYS.SECRET_KEY, label: 'Secret Key', type: 'password', required: false, secret: true },
+    ]
+  }
+
+  // Catalog API gateways → map from apiFields
+  if (type === 'API' && seed?.apiFields?.length) {
+    return apiFieldsToConfigDefs(seed.apiFields, code)
+  }
+
+  // Bank / manual bank transfer — account details (columns, not secrets)
+  if (category === 'BANK' && method !== 'API_CHECKOUT') {
+    return []
+  }
+
+  // Manual global destinations (PayPal email, Payeer ID, Wise account…)
+  // — the destination itself lives in the accountNumber column, so there are
+  // no extra config keys; the admin form labels the account field instead.
+  if (method === 'MANUAL_TRANSFER') {
+    return []
+  }
+
+  // Personal MFS / everything else — no extra credentials
+  return []
+}
+
+/** Human label for the account field per gateway family (admin + public). */
+export function accountFieldLabel(g: {
+  code?: string | null
+  category?: string | null
+  method?: string | null
+}): string {
+  const code = (g.code ?? '').toUpperCase()
+  const method = (g.method ?? '').toUpperCase()
+  if (code === 'BINANCE_PERSONAL' || code === 'BINANCE_PAY') return 'Binance UID'
+  if (method === 'MANUAL_TRANSFER') {
+    if (code.startsWith('PAYPAL') || code === 'PAYONEER') return 'Email address'
+    if (code === 'PAYEER') return 'Payeer Account ID'
+    if (code === 'WISE') return 'Wise Account'
+    if (code === 'TAPTAP_SEND') return 'Payout Number'
+    return 'Handle / Number'
+  }
+  if (g.category === 'BANK') return 'Account Number'
+  return 'Mobile Number'
 }
 
 

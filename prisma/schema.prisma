@@ -348,30 +348,44 @@ model InvoiceItem {
 // ─────────────────────────── Gateways ───────────────────────────
 
 model Gateway {
-  id              String   @id @default(cuid())
-  code            String   @unique // BKASH_PERSONAL
-  name            String // bKash Personal
-  mfs             String // BKASH | NAGAD | ... | BANK | GLOBAL
-  category        String   @default("MFS") // MFS | BANK | GLOBAL
-  type            String   @default("AUTOMATION") // AUTOMATION | MANUAL | API
-  accountType     String   @default("PERSONAL") // PERSONAL | AGENT | MERCHANT
-  enabled         Boolean  @default(true)
-  color           String   @default("#2563EB")
-  textColor       String   @default("#FFFFFF")
-  icon            String? // emoji or short code
-  accountNumber   String?
-  instructions    String?
-  qrImage         String?
-  minAmount       Float?
-  maxAmount       Float?
-  chargeFixed     Float    @default(0)
-  chargePercent   Float    @default(0)
-  discountFixed   Float    @default(0)
-  discountPercent Float    @default(0)
-  sortOrder       Int      @default(0)
-  config          String? // JSON for API-type credentials
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  code               String   @unique // BKASH_PERSONAL
+  name               String // bKash Personal
+  displayName        String? // "Display Name" shown on payment pages
+  mfs                String // BKASH | NAGAD | ... | BANK | GLOBAL
+  category           String   @default("MFS") // MFS | BANK | GLOBAL
+  type               String   @default("AUTOMATION") // AUTOMATION | MANUAL | API
+  accountType        String   @default("PERSONAL") // PERSONAL | AGENT | MERCHANT
+  enabled            Boolean  @default(true)
+  color              String   @default("#2563EB") // Primary Color
+  textColor          String   @default("#FFFFFF") // Text Color
+  buttonColor        String? // Button Color (falls back to color)
+  buttonText         String? // Button Text Color (falls back to textColor)
+  icon               String? // emoji or short code
+  logoUrl            String? // custom gateway logo (500x250 preferred, data URL)
+  accountNumber      String? // mobile number / account / destination
+  bankName           String? // Bank gateways
+  holderName         String? // Account holder name
+  branchName         String? // Branch name
+  routingNumber      String? // Routing number
+  swiftCode          String? // SWIFT / BIC
+  allowPending       String   @default("ENABLED") // ENABLED | DISABLED — pending (awaiting) submissions allowed
+  ipnUrl             String? // IPN endpoint (API gateways)
+  mode               String? // LIVE | SANDBOX (API gateways)
+  supportedLanguages String? // "en,bn"
+  currency           String? // gateway currency (BDT | USD | …)
+  instructions       String?
+  qrImage            String?
+  minAmount          Float?
+  maxAmount          Float?
+  chargeFixed        Float    @default(0)
+  chargePercent      Float    @default(0)
+  discountFixed      Float    @default(0)
+  discountPercent    Float    @default(0)
+  sortOrder          Int      @default(0)
+  config             String? // JSON credentials — secrets masked on every read
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@index([enabled])
   @@index([mfs])

@@ -107,19 +107,34 @@ export async function GET(_req: Request, ctx: RouteCtx) {
         const method = seed?.method ?? (g.category === 'MFS'
           ? g.accountType === 'AGENT' ? 'CASH_OUT' : g.accountType === 'MERCHANT' ? 'MAKE_PAYMENT' : 'SEND_MONEY'
           : g.category === 'BANK' ? 'BANK_TRANSFER' : g.type === 'API' ? 'API_CHECKOUT' : 'MANUAL_TRANSFER')
+        // Public destination for instructions: accountNumber, or the Binance UID
+        // from the config vault (public field, shown on the payment page).
+        let destination = g.accountNumber
+        if (!destination && (g.code === 'BINANCE_PERSONAL' || g.code === 'BINANCE_PAY')) {
+          try {
+            const cfg = g.config ? (JSON.parse(g.config) as Record<string, unknown>) : {}
+            const uid = typeof cfg.binance_uid === 'string' ? cfg.binance_uid.trim() : ''
+            if (uid) destination = uid
+          } catch { /* ignore */ }
+        }
         return {
           code: g.code,
           name: g.name,
+          displayName: g.displayName,
           mfs: g.mfs,
           category: g.category,
           type: g.type,
           accountType: g.accountType,
           color: g.color,
           textColor: g.textColor || '#FFFFFF',
+          buttonColor: g.buttonColor,
+          buttonText: g.buttonText,
+          logoUrl: g.logoUrl,
           icon: g.icon,
-          accountNumber: g.accountNumber,
+          accountNumber: destination,
           instructions: g.instructions,
           qrImage: g.qrImage,
+          allowPending: g.allowPending === 'DISABLED' ? 'DISABLED' : 'ENABLED',
           method,
           hasQr: seed?.hasQr ?? g.category === 'MFS',
           minAmount: g.minAmount,
@@ -144,6 +159,7 @@ interface PayActionBody {
   senderNumber?: unknown
   trxId?: unknown
   answers?: unknown
+  gatewayCode?: unknown
 }
 
 export async function POST(req: Request, ctx: RouteCtx) {
@@ -175,10 +191,12 @@ async function handleClaim(
   checkout: {
     id: string
     status: string
+    amount: number
     expiresAt: Date | null
     customFields: string | null
     answers: string | null
     customerPhone: string | null
+    gatewayCode: string | null
     metadata: string | null
   },
   body: PayActionBody | null
@@ -247,6 +265,55 @@ async function handleClaim(
   if (trxId) {
     const prev = safeJsonParse<Record<string, unknown>>(checkout.metadata, {})
     metadata = JSON.stringify({ ...prev, claimedTrxId: trxId, claimedSender: senderNumber })
+  }
+
+  // ── "Allow Pending Payment? Disable" — PipraPay-exact instant verify ──
+  // When the selected gateway disables pending submissions, the claim only
+  // succeeds if an already-received payment SMS matches right now; otherwise
+  // the submission is rejected (no pending review state).
+  const gwCode = String(body?.gatewayCode ?? checkout.gatewayCode ?? '')
+  if (gwCode) {
+    const gw = await db.gateway.findUnique({ where: { code: gwCode }, select: { allowPending: true, mfs: true, category: true } })
+    if (gw?.allowPending === 'DISABLED') {
+      const now = new Date()
+      const windowStart = new Date(now.getTime() - 48 * 3_600_000)
+      const amount = checkout.amount
+      const mfsList = ['BKASH', 'NAGAD', 'ROCKET', 'UPAY', 'TAP', 'TELECASH', 'MCASH', 'OKWALLET', 'PATHAOPAY', 'CELLFIN', 'IPAY', 'SURECASH', 'MEGHNAPAY', 'TRUSTMONEY', 'DMONEY', 'AWALLET']
+      const mfsFilter = mfsList.includes(gw.mfs) ? gw.mfs : undefined
+      const match = await db.transaction.findFirst({
+        where: {
+          status: { in: ['PAID', 'MATCHED'] },
+          checkoutId: null,
+          occurredAt: { gte: windowStart },
+          amount: { gte: amount - 0.01, lte: amount + 0.01 },
+          ...(mfsFilter ? { mfs: mfsFilter } : {}),
+        },
+        orderBy: { occurredAt: 'desc' },
+      })
+      if (!match) {
+        return Response.json(
+          { error: 'PENDING_DISABLED' },
+          { status: 422 }
+        )
+      }
+      // Verified instantly — attach the transaction and flip to PAID.
+      await db.$transaction([
+        db.checkoutPage.update({
+          where: { id: checkout.id },
+          data: {
+            status: 'PAID',
+            answers: answersJson,
+            customerId,
+            customerPhone: senderNumber,
+            paidAt: match.occurredAt,
+            paidTrxId: match.trxId,
+            metadata,
+          },
+        }),
+        db.transaction.update({ where: { id: match.id }, data: { checkoutId: checkout.id } }),
+      ])
+      return Response.json({ ok: true, status: 'PAID' })
+    }
   }
 
   await db.checkoutPage.update({
