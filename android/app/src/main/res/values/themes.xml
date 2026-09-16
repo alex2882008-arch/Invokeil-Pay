@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DayNight theme: follows the system dark mode; in-app override lives in Settings.
+         Brand accent is #2563EB (colorPrimary); cards are rounded 16dp via shape styles. -->
+    <style name="Theme.InvokeilPay" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#2563EB</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#1E40AF</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Invokeil.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Invokeil.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Invokeil.Large</item>
+    </style>
+
+    <!-- 8dp small components (chips, buttons inside cards) -->
+    <style name="ShapeAppearance.Invokeil.Small" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <!-- 16dp rounded cards -->
+    <style name="ShapeAppearance.Invokeil.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Invokeil.Large" parent="ShapeAppearance.Material3.Corner.Large">
+        <item name="cornerSize">20dp</item>
+    </style>
+</resources>

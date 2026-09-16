@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Invokeil Pay</string>
+
+    <!-- Legacy / reuse -->
+    <string name="panel_url">Panel URL</string>
+    <string name="panel_url_hint">https://your-panel.com</string>
+    <string name="device_key">Device key</string>
+    <string name="device_key_hint">ilp_xxxxxxxxxxxxxxxx</string>
+    <string name="save">Save</string>
+    <string name="test_connect">Connect &amp; test</string>
+    <string name="status">Status</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_log">SMS log</string>
+    <string name="nav_notifications">Notifications</string>
+    <string name="nav_outgoing">Outgoing</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Onboarding — shared -->
+    <string name="ob_step_of">Step %1$d of 3</string>
+    <string name="granted">Granted ✓</string>
+    <string name="btn_grant">Grant</string>
+    <string name="btn_continue">Continue</string>
+    <string name="btn_finish">Finish setup</string>
+
+    <!-- Onboarding — step 1: welcome -->
+    <string name="ob_welcome_title">Welcome to Invokeil Pay</string>
+    <string name="ob_welcome_body">The companion app that forwards your mobile-money payment SMS to your Invokeil Pay panel — automatically, securely, and in real time.</string>
+    <string name="ob_welcome_bullet_1">• Only payment SMS from whitelisted senders are forwarded</string>
+    <string name="ob_welcome_bullet_2">• OTP / PIN / verification codes never leave your phone</string>
+    <string name="ob_welcome_bullet_3">• Every message is visible in the in-app SMS log</string>
+    <string name="btn_get_started">Get started</string>
+    <string name="lang_en">English</string>
+    <string name="lang_bn">বাংলা</string>
+
+    <!-- Onboarding — step 2: pair -->
+    <string name="ob_pair_title">Pair with your panel</string>
+    <string name="ob_pair_body">Scan the pairing QR code shown on your panel (Devices → Add device), or enter the details manually.</string>
+    <string name="btn_scan_qr">Scan QR code</string>
+    <string name="pairing_code">Pairing code (optional)</string>
+    <string name="pairing_code_hint">123456</string>
+    <string name="testing">Testing connection…</string>
+    <string name="connected_ok">✓ Connected — device key accepted</string>
+    <string name="test_fail">Connection failed: %1$s</string>
+    <string name="test_ok">✓ Connection successful</string>
+    <string name="err_bad_url">Enter a valid panel URL (https://…)</string>
+    <string name="err_bad_key">Device key must start with ilp_</string>
+    <string name="err_scan_invalid">Not a valid Invokeil Pay QR code</string>
+    <string name="scan_prompt">Point the camera at the panel pairing QR code</string>
+
+    <!-- Onboarding — step 3: permissions -->
+    <string name="ob_perm_title">Permissions needed</string>
+    <string name="ob_perm_body">Grant these to let the app listen for payment SMS in the background.</string>
+    <string name="perm_sms_title">SMS read &amp; receive</string>
+    <string name="perm_sms_body">Required to capture incoming payment SMS. The app forwards only whitelisted sender messages — never OTPs — and logs everything locally.</string>
+    <string name="perm_notif_title">Notifications</string>
+    <string name="perm_notif_body">Shows a persistent "listening" status and forwarding results. You can turn event notifications off later in Settings.</string>
+    <string name="perm_battery_title">Battery optimization exemption</string>
+    <string name="perm_battery_body">Exempts the app from Doze so SMS forwarding is instant, even when the phone sleeps. Without it, messages may be delayed.</string>
+
+    <!-- Prominent disclosure (shown before the SMS permission prompt) -->
+    <string name="disclosure_title">SMS data disclosure</string>
+    <string name="disclosure_body">Invokeil Pay collects incoming SMS messages and forwards them to the panel you pair it with, for the sole purpose of verifying customer payments. SMS data is used only for payment verification: it is not sold, and it is not shared with any other third party. Messages containing OTP, PIN, or verification codes are filtered on your device and never uploaded. Only senders on your whitelist (e.g. bKash, NAGAD) are forwarded, and every forwarded message is recorded in the in-app SMS log. You can stop forwarding at any time by tapping Unpair in Settings.</string>
+    <string name="disclosure_accept">I understand &amp; allow</string>
+    <string name="disclosure_decline">Not now</string>
+
+    <!-- Dashboard -->
+    <string name="dash_paired">Paired with panel</string>
+    <string name="dash_unpaired">Not paired</string>
+    <string name="dash_status_listening">LISTENING</string>
+    <string name="dash_sub_listening">Forwarding payment SMS in real time</string>
+    <string name="dash_status_paused">PAUSED</string>
+    <string name="dash_sub_paused">Not forwarding — check pairing &amp; SMS permissions</string>
+    <string name="dash_device">Device</string>
+    <string name="dash_stat_today">Forwarded today</string>
+    <string name="dash_stat_total">Total forwarded</string>
+    <string name="dash_stat_queue">Queued / failed</string>
+    <string name="dash_stat_sync">Last sync</string>
+    <string name="value_never">Never</string>
+    <string name="banner_auth_error">Device key was rejected by the panel (HTTP 401/403). Re-pair or edit the key.</string>
+    <string name="btn_test_connection">Test connection</string>
+    <string name="btn_send_test_sms">Send test SMS</string>
+    <string name="btn_open_dashboard">Open web dashboard</string>
+    <string name="btn_edit">Edit</string>
+    <string name="btn_unpair">Unpair</string>
+    <string name="dialog_edit_title">Edit pairing</string>
+    <string name="unpair_confirm_title">Unpair this device?</string>
+    <string name="unpair_confirm_body">The device key will be removed and SMS forwarding stops. Your SMS log is kept on this phone. You can pair again anytime from the panel.</string>
+    <string name="test_sms_body">Invokeil Pay test message — if you can read this in the panel, forwarding works.</string>
+    <string name="test_sms_sent">Test SMS forwarded to panel ✓</string>
+    <string name="test_sms_queued">No connection — test SMS queued for retry</string>
+    <string name="err_no_config">Pair with the panel first</string>
+
+    <!-- SMS log -->
+    <string name="log_title">SMS log</string>
+    <string name="log_clear">Clear</string>
+    <string name="log_empty">No SMS captured yet.\nPayment SMS will appear here.</string>
+    <string name="chip_all">All</string>
+    <string name="status_forwarded">FORWARDED</string>
+    <string name="status_queued">QUEUED</string>
+    <string name="status_failed">FAILED</string>
+    <string name="status_filtered">FILTERED</string>
+    <string name="detail_title">%1$s — details</string>
+    <string name="detail_time">Received</string>
+    <string name="detail_status">Status</string>
+    <string name="detail_note">Reason</string>
+    <string name="detail_body">Full message</string>
+    <string name="btn_retry">Retry</string>
+    <string name="retried_ok">Forwarded ✓</string>
+    <string name="retried_fail">Still failing — queued for retry</string>
+    <string name="clear_log_confirm">Delete all locally stored SMS log entries? Messages already forwarded to the panel are not affected.</string>
+    <string name="reason_not_whitelisted">Sender not on whitelist</string>
+    <string name="reason_otp">OTP / PIN / code — blocked locally</string>
+    <string name="reason_not_paired">Not paired yet — queued</string>
+    <string name="reason_key_rejected">Device key rejected</string>
+    <string name="reason_network">Network error — retrying</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_app_lock">App lock</string>
+    <string name="app_lock_desc">Require a 4-digit PIN (or biometrics) to open the app</string>
+    <string name="app_lock_disabled">App lock disabled</string>
+    <string name="btn_set_pin">Set PIN</string>
+    <string name="btn_remove_pin">Remove PIN</string>
+    <string name="dialog_pin_title">Set 4-digit PIN</string>
+    <string name="dialog_pin_hint">New PIN</string>
+    <string name="dialog_pin_confirm_hint">Confirm PIN</string>
+    <string name="err_pin_mismatch">PINs do not match</string>
+    <string name="err_pin_digits">PIN must be exactly 4 digits</string>
+    <string name="settings_notifications">Event notifications</string>
+    <string name="notifications_desc">Notify when an SMS is forwarded or fails</string>
+    <string name="settings_custom_senders">Custom senders</string>
+    <string name="custom_senders_desc">Additional sender IDs to whitelist, on top of the built-in list</string>
+    <string name="btn_add_sender">Add sender</string>
+    <string name="dialog_sender_title">Add sender ID</string>
+    <string name="dialog_sender_hint">e.g. bKash or 16216</string>
+    <string name="tap_sender_remove">Tap a sender to remove it</string>
+    <string name="sender_added">Sender added</string>
+    <string name="sender_removed">Sender removed</string>
+    <string name="settings_gate_info">SMS gate</string>
+    <string name="gate_info_body">Forwarded: payment senders on the whitelist (bKash, NAGAD, 16216, 8446, UPAY, 16259, CellFin, TeleCash, mCash, OKWallet, PathaoPay, iPay + your custom entries). Filtered locally, never uploaded: anything containing OTP / PIN / verification codes, and every non-whitelisted sender.</string>
+    <string name="settings_unpair">Unpair device</string>
+    <string name="settings_disclosure">View SMS disclosure</string>
+    <string name="settings_version">App version</string>
+    <string name="not_paired">Not paired</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_service">Listening service</string>
+    <string name="notif_channel_alerts">Forwarding alerts</string>
+    <string name="notif_title">Invokeil Pay — listening</string>
+    <string name="notif_text">Forwarding payment SMS to %1$s</string>
+    <string name="alert_forwarded_title">Payment SMS forwarded</string>
+    <string name="alert_forwarded_body">%1$s: %2$s</string>
+    <string name="alert_failed_title">Forwarding failed</string>
+    <string name="alert_failed_body">%1$d message(s) could not be delivered — retrying automatically.</string>
+
+    <!-- App lock -->
+    <string name="biometric_title">Unlock Invokeil Pay</string>
+    <string name="biometric_sub">Confirm your identity to continue</string>
+    <string name="btn_use_pin">Use PIN</string>
+    <string name="btn_unlock">Unlock</string>
+    <string name="err_pin_wrong">Wrong PIN</string>
+
+    <!-- v3: sandbox badge -->
+    <string name="badge_sandbox">SANDBOX MODE</string>
+
+    <!-- v3: dashboard summary cards -->
+    <string name="dash_notifications">Notifications</string>
+    <string name="dash_notifications_sub">Recent payments, emails &amp; SMS</string>
+    <string name="dash_outgoing">Outgoing payments</string>
+    <string name="dash_outgoing_sub">Payout commands from the panel</string>
+    <string name="btn_refresh">Refresh</string>
+    <string name="dash_count_recent">%1$d recent</string>
+    <string name="dash_count_active">%1$d active</string>
+
+    <!-- v3: notifications tab -->
+    <string name="notif_empty">Nothing new right now.\nPayments, emails and SMS from the panel will appear here.</string>
+
+    <!-- v3: outgoing payments tab (beta) -->
+    <string name="outgoing_empty">No payout commands yet.\n\nOutgoing payments is a beta feature: commands approved in the panel appear here, and you confirm or reject them after executing them in your mobile-money app.</string>
+    <string name="outgoing_confirmed">CONFIRMED</string>
+    <string name="outgoing_dispatched">DISPATCHED</string>
+    <string name="outgoing_cancelled">CANCELLED</string>
+    <string name="btn_confirm">Confirm</string>
+    <string name="btn_mark_failed">Failed</string>
+    <string name="outgoing_result_ok">Result sent to panel ✓</string>
+    <string name="outgoing_result_fail">Could not reach the panel — try again</string>
+</resources>

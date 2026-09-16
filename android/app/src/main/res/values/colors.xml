@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand -->
+    <color name="brand_primary">#2563EB</color>
+    <color name="brand_dark">#1E40AF</color>
+    <color name="brand_soft">#DBEAFE</color>
+
+    <!-- Status colors (forwarded / queued / failed / filtered) -->
+    <color name="status_forwarded">#16A34A</color>
+    <color name="status_queued">#D97706</color>
+    <color name="status_failed">#DC2626</color>
+    <color name="status_filtered">#6B7280</color>
+</resources>

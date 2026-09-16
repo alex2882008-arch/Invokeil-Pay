@@ -1,0 +1,206 @@
+import { requireRole, jsonError } from '@/lib/auth'
+import { DEV_ROLES } from '@/lib/roles'
+
+// ── Developer Console: GET code snippets ─────────────────────────────────────
+// Copy-ready integration snippets for the merchant API v1. Never contains a
+// real key — always the <YOUR_API_KEY> placeholder. Base URL comes from the
+// request origin. The webhook verification sample mirrors lib/webhook.ts
+// exactly: HMAC-SHA256 of "<timestamp>.<raw body>" compared against the
+// "t=<timestamp>,v1=<hex>" header.
+
+export async function GET(req: Request) {
+  try {
+    await requireRole(DEV_ROLES)
+
+    const base = new URL(req.url).origin
+    const K = '<YOUR_API_KEY>'
+
+    const curl = [
+      `# 1) Create a checkout`,
+      `curl -X POST ${base}/api/v1/checkout \\`,
+      `  -H "Authorization: Bearer ${K}" \\`,
+      `  -H "Content-Type: application/json" \\`,
+      `  -d '{`,
+      `    "amount": 1500,`,
+      `    "customer_name": "Rahim Uddin",`,
+      `    "customer_mobile": "01711111101",`,
+      `    "redirect_url": "${base}/thanks",`,
+      `    "cancel_url": "${base}/cancel",`,
+      `    "metadata": { "order_id": "1001" }`,
+      `  }'`,
+      ``,
+      `# 2) Verify a payment by token`,
+      `curl ${base}/api/v1/checkout/Kx9mTa2vQe8Z \\`,
+      `  -H "Authorization: Bearer ${K}"`,
+    ].join('\n')
+
+    const js = [
+      `const API_KEY = "${K}"; // store server-side only — never expose in the browser`,
+      `const BASE = "${base}";`,
+      ``,
+      `// 1) Create a checkout and redirect the customer`,
+      `async function createCheckout() {`,
+      `  const res = await fetch(BASE + "/api/v1/checkout", {`,
+      `    method: "POST",`,
+      `    headers: {`,
+      `      "Authorization": "Bearer " + API_KEY,`,
+      `      "Content-Type": "application/json",`,
+      `    },`,
+      `    body: JSON.stringify({`,
+      `      amount: 1500,`,
+      `      customer_name: "Rahim Uddin",`,
+      `      customer_mobile: "01711111101",`,
+      `      redirect_url: BASE + "/thanks",`,
+      `      metadata: { order_id: "1001" },`,
+      `    }),`,
+      `  });`,
+      `  const payment = await res.json();`,
+      `  window.location.href = payment.checkout_url;`,
+      `}`,
+      ``,
+      `// 2) Verify a payment`,
+      `async function verifyPayment(token) {`,
+      `  const res = await fetch(BASE + "/api/v1/checkout/" + token, {`,
+      `    headers: { "Authorization": "Bearer " + API_KEY },`,
+      `  });`,
+      `  return res.json(); // { status: "PAID", paid_trx_id, paid_at, ... }`,
+      `}`,
+    ].join('\n')
+
+    const php = [
+      `<?php`,
+      `$apiKey = '${K}'; // store server-side only`,
+      `$baseUrl = '${base}';`,
+      ``,
+      `// 1) Create a checkout`,
+      `$ch = curl_init($baseUrl . '/api/v1/checkout');`,
+      `curl_setopt_array($ch, [`,
+      `    CURLOPT_RETURNTRANSFER => true,`,
+      `    CURLOPT_POST           => true,`,
+      `    CURLOPT_HTTPHEADER     => [`,
+      `        'Authorization: Bearer ' . $apiKey,`,
+      `        'Content-Type: application/json',`,
+      `    ],`,
+      `    CURLOPT_POSTFIELDS     => json_encode([`,
+      `        'amount'         => 1500,`,
+      `        'customer_name'  => 'Rahim Uddin',`,
+      `        'customer_mobile'=> '01711111101',`,
+      `        'redirect_url'   => $baseUrl . '/thanks',`,
+      `        'metadata'       => ['order_id' => '1001'],`,
+      `    ]),`,
+      `]);`,
+      `$payment = json_decode(curl_exec($ch), true);`,
+      `header('Location: ' . $payment['checkout_url']);`,
+      ``,
+      `// 2) Verify a payment`,
+      `$ch = curl_init($baseUrl . '/api/v1/checkout/' . $token);`,
+      `curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $apiKey]);`,
+      `$payment = json_decode(curl_exec($ch), true);`,
+      `// $payment['status'] === 'PAID'`,
+    ].join('\n')
+
+    const python = [
+      `import requests`,
+      ``,
+      `API_KEY = "${K}"  # store server-side only`,
+      `BASE = "${base}"`,
+      ``,
+      `HEADERS = {"Authorization": f"Bearer {API_KEY}"}`,
+      ``,
+      `# 1) Create a checkout`,
+      `def create_checkout():`,
+      `    res = requests.post(BASE + "/api/v1/checkout", headers=HEADERS, json={`,
+      `        "amount": 1500,`,
+      `        "customer_name": "Rahim Uddin",`,
+      `        "customer_mobile": "01711111101",`,
+      `        "redirect_url": BASE + "/thanks",`,
+      `        "metadata": {"order_id": "1001"},`,
+      `    })`,
+      `    res.raise_for_status()`,
+      `    return res.json()  # {"payment_id": ..., "checkout_url": ...}`,
+      ``,
+      `# 2) Verify a payment`,
+      `def verify_payment(token):`,
+      `    res = requests.get(BASE + "/api/v1/checkout/" + token, headers=HEADERS)`,
+      `    res.raise_for_status()`,
+      `    return res.json()  # {"status": "PAID", "paid_trx_id": ...}`,
+    ].join('\n')
+
+    const node = [
+      `import express from "express";`,
+      `import crypto from "crypto";`,
+      ``,
+      `const app = express();`,
+      `const API_KEY = "${K}"; // store server-side only`,
+      `const BASE = "${base}";`,
+      ``,
+      `// 1) Create a checkout`,
+      `app.post("/create-payment", async (req, res) => {`,
+      `  const r = await fetch(BASE + "/api/v1/checkout", {`,
+      `    method: "POST",`,
+      `    headers: {`,
+      `      Authorization: \`Bearer \${API_KEY}\`,`,
+      `      "Content-Type": "application/json",`,
+      `    },`,
+      `    body: JSON.stringify({`,
+      `      amount: req.body.amount,`,
+      `      customer_name: req.body.name,`,
+      `      customer_mobile: req.body.phone,`,
+      `      redirect_url: BASE + "/thanks",`,
+      `    }),`,
+      `  });`,
+      `  const payment = await r.json();`,
+      `  res.json(payment); // send checkout_url to the client`,
+      `});`,
+      ``,
+      `// 2) Verify a payment by token`,
+      `app.get("/payment/:token", async (req, res) => {`,
+      `  const r = await fetch(BASE + "/api/v1/checkout/" + req.params.token, {`,
+      `    headers: { Authorization: \`Bearer \${API_KEY}\` },`,
+      `  });`,
+      `  res.json(await r.json());`,
+      `});`,
+    ].join('\n')
+
+    const webhookVerify = [
+      `import crypto from "crypto";`,
+      ``,
+      `// Invokeil Pay signs every webhook with:`,
+      `//   X-Invokeil-Signature: t=<timestamp>,v1=<hex HMAC-SHA256>`,
+      `// where the HMAC input is exactly  "<timestamp>.<raw request body>".`,
+      ``,
+      `function isValidSignature(rawBody, secret, header) {`,
+      `  const parts = Object.fromEntries(header.split(",").map((kv) => kv.split("=")));`,
+      `  if (!parts.t || !parts.v1) return false;`,
+      `  // Reject replays older than ~5 minutes`,
+      `  if (Math.abs(Date.now() - Number(parts.t)) > 5 * 60 * 1000) return false;`,
+      `  const expected = crypto`,
+      `    .createHmac("sha256", secret)`,
+      `    .update(\`\${parts.t}.\${rawBody}\`)`,
+      `    .digest("hex");`,
+      `  try {`,
+      `    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1));`,
+      `  } catch {`,
+      `    return false;`,
+      `  }`,
+      `}`,
+      ``,
+      `// Express: keep the RAW body for verification`,
+      `app.post("/webhooks/invokeil", express.raw({ type: "application/json" }), (req, res) => {`,
+      `  const header = req.get("X-Invokeil-Signature") || "";`,
+      `  if (!isValidSignature(req.body, process.env.INVOKEIL_WEBHOOK_SECRET, header)) {`,
+      `    return res.status(400).send("Invalid signature");`,
+      `  }`,
+      `  const { event, data } = JSON.parse(req.body);`,
+      `  if (event === "checkout.paid") {`,
+      `    // fulfill the order: data.checkout_token, data.trx_id, data.amount ...`,
+      `  }`,
+      `  res.json({ received: true });`,
+      `});`,
+    ].join('\n')
+
+    return Response.json({ baseUrl: base, curl, js, php, python, node, webhookVerify })
+  } catch (err) {
+    return jsonError(err)
+  }
+}

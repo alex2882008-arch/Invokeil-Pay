@@ -1,0 +1,1009 @@
+// Invokeil Pay v3 — Personal MFS Payment Automation Platform
+// PipraPay/Ownpay-class feature set + communication automation,
+// money ops, risk, ops center, multi-brand, sandbox.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Auth ───────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  role          String    @default("VIEWER") // OWNER | ADMIN | DEVELOPER | FINANCE | SUPPORT | AGENT | VIEWER
+  active        Boolean   @default(true)
+  twoFaSecret   String? // base32 TOTP secret
+  twoFaEnabled  Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  devices  Device[]
+  sessions Session[]
+  logs     ActivityLog[]
+  passkeys Passkey[]
+
+  @@index([role])
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String // sha256 of JWT jti/session id
+  ip         String?
+  userAgent  String?
+  browser    String?
+  revoked    Boolean   @default(false)
+  lastSeenAt DateTime  @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String?
+  userAgent String?
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actorName String // snapshot name
+  action    String // e.g. "transaction.reversed"
+  target    String? // e.g. "tx:CXYZ123"
+  meta      String? // JSON
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+// ─────────────────────────── Devices (Android app instances) ───────────────────────────
+
+model Device {
+  id             String    @id @default(cuid())
+  name           String
+  deviceKey      String    @unique // ilp_xxxxx
+  pairingCode    String?   @unique // 6-digit OTP shown in QR pairing
+  pairedAt       DateTime?
+  model          String?
+  androidVersion String?
+  appVersion     String?
+  battery        Int?
+  signal         String?
+  sims           String? // JSON [{ number, carrier }]
+  status         String    @default("OFFLINE") // ONLINE | OFFLINE | BLOCKED
+  lastSeen       DateTime?
+  ownerId        String?
+  owner          User?     @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  rawSms       RawSms[]
+  transactions Transaction[]
+  balances     DeviceBalance[]
+  outgoingPayments OutgoingPayment[]
+
+  @@index([status])
+}
+
+model DeviceBalance {
+  id          String   @id @default(cuid())
+  deviceId    String
+  device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  mfs         String // BKASH | NAGAD | ROCKET | UPAY
+  simNumber   String?
+  accountType String   @default("PERSONAL") // PERSONAL | AGENT | MERCHANT
+  balance     Float    @default(0)
+  verifiedAt  DateTime @default(now())
+
+  @@index([deviceId])
+}
+
+// ─────────────────────────── Raw SMS inbox ───────────────────────────
+
+model RawSms {
+  id         String    @id @default(cuid())
+  deviceId   String
+  device     Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  simNumber  String?
+  sender     String // SMS sender ID: bKash, NAGAD, 16216 ...
+  body       String
+  receivedAt DateTime
+  processed  Boolean   @default(false)
+  parsed     Boolean   @default(false)
+  review     String    @default("AUTO") // AUTO | AWAITING_REVIEW | APPROVED | ERROR
+  note       String?
+  source     String    @default("APP") // APP | WEB | SIMULATOR
+  createdAt  DateTime  @default(now())
+
+  transaction Transaction?
+
+  @@index([deviceId])
+  @@index([processed])
+  @@index([receivedAt])
+  @@index([review])
+}
+
+// ─────────────────────────── Transactions ───────────────────────────
+
+model Transaction {
+  id           String    @id @default(cuid())
+  trxId        String?
+  mfs          String // BKASH | NAGAD | ROCKET | UPAY | BANK | OTHER
+  gatewayCode  String? // BKASH_PERSONAL etc.
+  method       String?
+  bankName     String?
+  amount       Float
+  charge       Float     @default(0)
+  discount     Float     @default(0)
+  netAmount    Float?
+  fee          Float     @default(0)
+  balance      Float?
+  senderNumber String?
+  senderName   String?
+  status       String    @default("UNMATCHED") // PAID | MATCHED | UNMATCHED | REVERSED
+  deviceId     String?
+  device       Device?   @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  rawSmsId     String?   @unique
+  rawSms       RawSms?   @relation(fields: [rawSmsId], references: [id], onDelete: SetNull)
+  checkoutId   String?
+  checkout     CheckoutPage? @relation(fields: [checkoutId], references: [id], onDelete: SetNull)
+  linkId       String?
+  link         PaymentLink? @relation(fields: [linkId], references: [id], onDelete: SetNull)
+  invoiceId    String?
+  invoice      Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  settled      Boolean   @default(false)
+  settledAt    DateTime?
+  settlementId String?
+  riskFlagged  Boolean   @default(false)
+  refundAmount Float     @default(0)
+  source       String    @default("SMS") // SMS | API | LINK | CHECKOUT | INVOICE | SANDBOX
+  ipnSentAt    DateTime?
+  occurredAt   DateTime
+  createdAt    DateTime  @default(now())
+
+  refunds  Refund[]
+  disputes Dispute[]
+
+  @@unique([mfs, trxId])
+  @@index([status])
+  @@index([mfs])
+  @@index([occurredAt])
+  @@index([customerId])
+}
+
+// ─────────────────────────── Customers ───────────────────────────
+
+model Customer {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  suspended     Boolean   @default(false)
+  suspendReason String?
+  notes         String?
+  tags          String?   // JSON array of tags
+  brandId       String?
+  insertedVia   String    @default("MANUAL") // MANUAL | CHECKOUT | API
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  transactions Transaction[]
+  checkouts    CheckoutPage[]
+  invoices     Invoice[]
+  subscriptions Subscription[]
+
+  @@index([suspended])
+}
+
+// ─────────────────────────── Checkouts (one-off payment requests) ───────────────────────────
+
+model CheckoutPage {
+  id            String    @id @default(cuid())
+  token         String    @unique
+  title         String
+  description   String?
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName  String?
+  customerPhone String?
+  amount        Float
+  currency      String    @default("BDT")
+  gatewayCode   String? // preferred gateway e.g. BKASH_PERSONAL; ANY = all
+  mfs           String    @default("ANY")
+  note          String?
+  payToNumbers  String?
+  customFields  String? // JSON [{name,label,required}]
+  answers       String? // JSON submitted answers
+  successUrl    String?
+  cancelUrl     String?
+  status        String    @default("PENDING") // PENDING | AWAITING | PAID | CANCELLED | EXPIRED
+  expiresAt     DateTime?
+  paidAt        DateTime?
+  paidTrxId     String?
+  storeId       String?
+  store         Store?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  brandId       String?
+  source        String    @default("WEB") // WEB | API | LINK | AUTOMATION
+  metadata      String? // JSON from API
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  transactions Transaction[]
+
+  @@index([status])
+  @@index([amount])
+  @@index([storeId])
+}
+
+// ─────────────────────────── Payment Links (reusable) ───────────────────────────
+
+model PaymentLink {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  token        String    @unique
+  title        String
+  description  String?
+  amountType   String    @default("FIXED") // FIXED | VARIABLE
+  amount       Float     @default(0)
+  minAmount    Float?
+  maxAmount    Float?
+  currency     String    @default("BDT")
+  gatewayCode  String?
+  customFields String? // JSON
+  usageLimit   Int?
+  usedCount    Int       @default(0)
+  views        Int       @default(0)
+  passwordHash String?   // optional access password
+  brandId      String?
+  expiresAt    DateTime?
+  successUrl   String?
+  cancelUrl    String?
+  status       String    @default("ACTIVE") // ACTIVE | DISABLED
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  transactions Transaction[]
+
+  @@index([status])
+}
+
+// ─────────────────────────── Invoices ───────────────────────────
+
+model Invoice {
+  id          String    @id @default(cuid())
+  number      String    @unique // INV-000001
+  token       String    @unique // public URL
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
+  title       String
+  status      String    @default("DRAFT") // DRAFT | SENT | PAID | OVERDUE | CANCELLED | REFUNDED
+  currency    String    @default("BDT")
+  subtotal    Float     @default(0)
+  discount    Float     @default(0)
+  tax         Float     @default(0)
+  shipping    Float     @default(0)
+  total       Float     @default(0)
+  dueDate     DateTime?
+  notes       String? // private
+  publicNote  String?
+  paidAt      DateTime?
+  paidTrxId   String?
+  subscriptionId String?
+  partialPaid Float     @default(0)
+  remindersSent Int     @default(0)
+  autoRetry   Boolean   @default(false)
+  recurring   Boolean   @default(false)
+  interval    String? // WEEKLY | MONTHLY | QUARTERLY | YEARLY
+  parentId    String?
+  brandId     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items        InvoiceItem[]
+  transactions Transaction[]
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float   @default(1)
+  unitPrice   Float   @default(0)
+  total       Float   @default(0)
+
+  @@index([invoiceId])
+}
+
+// ─────────────────────────── Gateways ───────────────────────────
+
+model Gateway {
+  id              String   @id @default(cuid())
+  code            String   @unique // BKASH_PERSONAL
+  name            String // bKash Personal
+  mfs             String // BKASH | NAGAD | ... | BANK | GLOBAL
+  category        String   @default("MFS") // MFS | BANK | GLOBAL
+  type            String   @default("AUTOMATION") // AUTOMATION | MANUAL | API
+  accountType     String   @default("PERSONAL") // PERSONAL | AGENT | MERCHANT
+  enabled         Boolean  @default(true)
+  color           String   @default("#2563EB")
+  textColor       String   @default("#FFFFFF")
+  icon            String? // emoji or short code
+  accountNumber   String?
+  instructions    String?
+  qrImage         String?
+  minAmount       Float?
+  maxAmount       Float?
+  chargeFixed     Float    @default(0)
+  chargePercent   Float    @default(0)
+  discountFixed   Float    @default(0)
+  discountPercent Float    @default(0)
+  sortOrder       Int      @default(0)
+  config          String? // JSON for API-type credentials
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([mfs])
+}
+
+// ─────────────────────────── Stores / Merchants ───────────────────────────
+
+model Store {
+  id              String   @id @default(cuid())
+  name            String
+  contactEmail    String?
+  apiKey          String   @unique // sk_live_xxxxx
+  webhookUrl      String?
+  secret          String // webhook signing secret
+  domainWhitelist String? // JSON array of allowed return/webhook hosts
+  logoUrl         String?
+  brandId         String?
+  sandbox         Boolean  @default(false)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  checkouts         CheckoutPage[]
+  webhookDeliveries WebhookDelivery[]
+  apiKeys           ApiKey[]
+  webhookEndpoints  WebhookEndpoint[]
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name        String
+  key         String    @unique
+  scopes      String    @default("create_payment,verify_payment") // comma list
+  sandbox     Boolean   @default(false)
+  rotatedFrom String?
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  locked      Boolean   @default(false)
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([storeId])
+}
+
+// ─────────────────────────── Webhooks ───────────────────────────
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  url       String
+  events    String   @default("*") // "*" or comma list
+  secret    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  deliveries WebhookDelivery[]
+
+  @@index([storeId])
+}
+
+model WebhookDelivery {
+  id          String    @id @default(cuid())
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  endpointId  String?
+  endpoint    WebhookEndpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
+  event       String
+  payload     String
+  signature   String?
+  status      String    @default("PENDING") // SUCCESS | FAILED | PENDING
+  httpCode    Int?
+  error       String?
+  attempts    Int       @default(1)
+  nextRetryAt DateTime?
+  responseAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([storeId])
+  @@index([status])
+}
+
+// ─────────────────────────── SMS whitelist/templates ───────────────────────────
+
+model SmsTemplate {
+  id      String  @id @default(cuid())
+  mfs     String // BKASH | NAGAD | ...
+  name    String
+  pattern String // regex
+  sample  String?
+  active  Boolean @default(true)
+}
+
+// ─────────────────────────── FAQ / support ───────────────────────────
+
+model FaqItem {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int     @default(0)
+  active    Boolean @default(true)
+}
+
+// ─────────────────────────── Settings ───────────────────────────
+
+model Setting {
+  key   String @id
+  value String
+}
+
+// ═══════════════════════════ v3: Multi-brand ═══════════════════════════
+
+model Brand {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  color         String    @default("#2563EB")
+  logoUrl       String?
+  domain        String?   // pay.merchant.com (white-label)
+  emailFromName String?
+  supportPhone  String?
+  supportEmail  String?
+  currency      String    @default("BDT")
+  locale        String    @default("en")
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  gateways         BrandGateway[]
+  messageTemplates MessageTemplate[]
+  automations      Automation[]
+}
+
+model BrandGateway {
+  id           String  @id @default(cuid())
+  brandId      String
+  brand        Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  gatewayCode  String
+  enabled      Boolean @default(true)
+  accountNumber String?
+  instructions String?
+  chargeFixed  Float   @default(0)
+  chargePercent Float  @default(0)
+
+  @@unique([brandId, gatewayCode])
+}
+
+// ═══════════════════════════ v3: Email automation ═══════════════════════════
+
+model EmailProvider {
+  id            String    @id @default(cuid())
+  type          String // RESEND | SES | MAILERSEND | PLUNK | LOOPS | SMTP | CUSTOM
+  label         String
+  config        String    @default("{}") // JSON credentials (apiKey, region, host, port, user, pass, url...)
+  fromEmail     String
+  fromName      String?
+  priority      Int       @default(10) // lower = tried first in failover chain
+  enabled       Boolean   @default(false)
+  healthy       Boolean   @default(true)
+  lastCheckedAt DateTime?
+  sentCount     Int       @default(0)
+  failCount     Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model EmailIdentity {
+  id        String   @id @default(cuid())
+  label     String // Support, Billing, No Reply ...
+  email     String   @unique
+  purpose   String   @default("CUSTOM") // GENERAL | SALES | PAYMENTS | INVOICES | SUPPORT | REFUNDS | SECURITY | OTP | BILLING | NOREPLY | CUSTOM
+  signature String?
+  verified  Boolean  @default(false)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  messages EmailMessage[]
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  category  String // PAYMENT | INVOICE | SUBSCRIPTION | SECURITY | REFUND | SUPPORT | MARKETING | SYSTEM | KYC | OTP
+  event     String?
+  locale    String   @default("en")
+  tone      String   @default("FORMAL") // FORMAL | FRIENDLY | MINIMAL
+  subject   String
+  bodyHtml  String
+  variables String? // JSON array of variable names
+  builtin   Boolean  @default(true)
+  active    Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([category])
+  @@index([locale])
+}
+
+model EmailMessage {
+  id                String    @id @default(cuid())
+  direction         String    @default("SENT") // SENT | RECEIVED
+  toAddress         String
+  fromAddress       String?
+  identityId        String?
+  identity          EmailIdentity? @relation(fields: [identityId], references: [id], onDelete: SetNull)
+  subject           String
+  templateKey       String?
+  bodyHtml          String?
+  bodyText          String?
+  providerType      String?
+  providerMessageId String?
+  status            String    @default("QUEUED") // QUEUED | SENT | DELIVERED | OPENED | CLICKED | BOUNCED | FAILED | RECEIVED
+  error             String?
+  cost              Float     @default(0)
+  attempts          Int       @default(1)
+  providerChain     String? // JSON log of failover attempts
+  relatedType       String? // checkout | invoice | subscription | customer | refund | dispute | automation
+  relatedId         String?
+  customerRef       String?
+  receivedAt        DateTime?
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([status])
+  @@index([direction])
+  @@index([createdAt])
+  @@index([customerRef])
+}
+
+// ═══════════════════════════ v3: SMS gateway ═══════════════════════════
+
+model SmsProvider {
+  id            String    @id @default(cuid())
+  type          String // TWILIO | TELNYX | PLIVO | TEXTBEE | AWS_SNS | CUSTOM
+  label         String
+  config        String    @default("{}") // JSON (sid, token, from, apiKey, deviceId, region, url...)
+  priority      Int       @default(10)
+  enabled       Boolean   @default(false)
+  healthy       Boolean   @default(true)
+  lastCheckedAt DateTime?
+  sentCount     Int       @default(0)
+  failCount     Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SmsMessage {
+  id                String    @id @default(cuid())
+  direction         String    @default("SENT") // SENT | RECEIVED
+  toNumber          String
+  fromNumber        String?
+  body              String
+  providerType      String?
+  providerMessageId String?
+  status            String    @default("QUEUED") // QUEUED | SENT | DELIVERED | FAILED | RECEIVED
+  error             String?
+  cost              Float     @default(0)
+  attempts          Int       @default(1)
+  providerChain     String?
+  relatedType       String?
+  relatedId         String?
+  customerRef       String?
+  brandId           String?
+  createdAt         DateTime  @default(now())
+  sentAt            DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerRef])
+}
+
+// Per-brand notification message templates (PipraPay-style separate space per brand)
+model MessageTemplate {
+  id        String   @id @default(cuid())
+  brandId   String?
+  brand     Brand?   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  channel   String // SMS | EMAIL
+  event     String // PAYMENT_SUCCESS | PAYMENT_FAILED | PAYMENT_CANCEL | PAYMENT_DUE | INVOICE_CREATED | INVOICE_OVERDUE | SUBSCRIPTION_RENEWED | OTP | CUSTOM
+  locale    String   @default("en")
+  subject   String? // email only
+  body      String
+  variables String? // JSON array
+  enabled   Boolean  @default(true)
+
+  @@unique([brandId, channel, event, locale])
+}
+
+// ═══════════════════════════ v3: Automation engine ═══════════════════════════
+
+model Automation {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  trigger     String // PAYMENT_PAID | PAYMENT_UNPAID_30M | PAYMENT_UNPAID_24H | CHECKOUT_CREATED | INVOICE_OVERDUE | LINK_USED | SUBSCRIPTION_DUE | RISK_FLAGGED | MANUAL
+  conditions  String? // JSON [{field,op,value}]
+  actions     String // JSON [{type: SEND_EMAIL|SEND_SMS|WEBHOOK|ADD_NOTE|TAG_CUSTOMER|BRANCH, ...}]
+  enabled     Boolean   @default(true)
+  runCount    Int       @default(0)
+  lastRunAt   DateTime?
+  brandId     String?
+  brand       Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  builtIn     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  runs AutomationRun[]
+
+  @@index([trigger])
+  @@index([enabled])
+}
+
+model AutomationRun {
+  id           String    @id @default(cuid())
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  status       String    @default("RUNNING") // RUNNING | WAITING | SUCCESS | FAILED | CANCELLED
+  context      String? // JSON snapshot
+  log          String? // JSON step-by-step
+  waitUntil    DateTime?
+  createdAt    DateTime  @default(now())
+  finishedAt   DateTime?
+
+  @@index([automationId])
+  @@index([waitUntil])
+}
+
+// ═══════════════════════════ v3: Money ops ═══════════════════════════
+
+model Refund {
+  id               String    @id @default(cuid())
+  transactionId    String?
+  transaction      Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  trxRef           String?
+  customerRef      String?
+  type             String    @default("FULL") // FULL | PARTIAL
+  amount           Float
+  reason           String?
+  status           String    @default("PENDING") // PENDING | APPROVED | PROCESSED | REJECTED
+  evidence         String? // JSON array of file refs/urls
+  notes            String?
+  requestedByName  String?
+  approvedByName   String?
+  processedByName  String?
+  approvalId       String?
+  decidedAt        DateTime?
+  processedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([status])
+  @@index([customerRef])
+}
+
+model Dispute {
+  id            String    @id @default(cuid())
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  trxRef        String?
+  customerRef   String?
+  amount        Float
+  reason        String
+  status        String    @default("OPEN") // OPEN | UNDER_REVIEW | WON | LOST | CANCELLED
+  evidence      String? // JSON
+  notes         String?
+  messages      String? // JSON customer communication log
+  deadlineAt    DateTime?
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model Settlement {
+  id            String    @id @default(cuid())
+  period        String // "2026-09" or custom label
+  provider      String    @default("ALL") // BKASH | NAGAD | ROCKET | UPAY | ALL
+  expected      Float     @default(0)
+  actual        Float     @default(0)
+  fees          Float     @default(0)
+  adjustments   Float     @default(0)
+  status        String    @default("PENDING") // PENDING | RECONCILED | MISMATCH
+  itemCount     Int       @default(0)
+  missingCount  Int       @default(0)
+  trxIds        String? // JSON array of included transaction ids
+  notes         String?
+  reconciledAt  DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([period])
+}
+
+// ═══════════════════════════ v3: Risk & compliance ═══════════════════════════
+
+model RiskRule {
+  id       String   @id @default(cuid())
+  name     String
+  type     String // VELOCITY | AMOUNT_LIMIT | LIST_MATCH | HOUR_PATTERN
+  config   String   @default("{}") // JSON: {windowMin, maxCount, maxAmount, minAmount, listType...}
+  action   String   @default("REVIEW") // ALLOW | REVIEW | BLOCK
+  priority Int      @default(10)
+  enabled  Boolean  @default(true)
+  hits     Int      @default(0)
+  lastHitAt DateTime?
+  createdAt DateTime @default(now())
+
+  cases RiskCase[]
+}
+
+model RiskCase {
+  id           String    @id @default(cuid())
+  ruleId       String?
+  rule         RiskRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  subjectType  String // TRANSACTION | CUSTOMER | CHECKOUT
+  subjectRef   String
+  score        Int       @default(0)
+  reason       String
+  status       String    @default("OPEN") // OPEN | CLEARED | BLOCKED
+  decidedByName String?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  decidedAt    DateTime?
+
+  @@index([status])
+}
+
+model ListEntry {
+  id        String   @id @default(cuid())
+  list      String // ALLOW | BLOCK
+  type      String // PHONE | EMAIL | IP | TRX
+  value     String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([list, type, value])
+}
+
+model ApprovalRequest {
+  id              String    @id @default(cuid())
+  type            String // REFUND | PAYOUT | API_KEY | GATEWAY_CHANGE | SETTING | EMAIL_PROVIDER
+  summary         String
+  payload         String    @default("{}") // JSON
+  thresholdAmount Float?
+  status          String    @default("PENDING") // PENDING | APPROVED | REJECTED | EXPIRED
+  requestedByName String?
+  approvedByName  String?
+  notes           String?
+  decidedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([status])
+}
+
+model KycProfile {
+  id           String    @id @default(cuid())
+  entityType   String    @default("INDIVIDUAL") // INDIVIDUAL | BUSINESS
+  legalName    String
+  contactEmail String?
+  contactPhone String?
+  documents    String    @default("[]") // JSON [{type,name,url,ref}]
+  status       String    @default("PENDING") // PENDING | SUBMITTED | VERIFIED | REJECTED | EXPIRED
+  reviewerNote String?
+  submittedAt  DateTime?
+  reviewedAt   DateTime?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model Passkey {
+  id           String    @id @default(cuid())
+  userId       String?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String
+  credentialId String    @unique
+  publicKey    String
+  active       Boolean   @default(true)
+  lastUsedAt   DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model OutgoingPayment {
+  id              String    @id @default(cuid())
+  mfs             String // BKASH | NAGAD | ROCKET | UPAY
+  toNumber        String
+  amount          Float
+  deviceId        String?
+  device          Device?   @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  status          String    @default("QUEUED") // QUEUED | DISPATCHED | CONFIRMED | FAILED | CANCELLED
+  ref             String?
+  note            String?
+  requestedByName String?
+  approvedByName  String?
+  approvalId      String?
+  error           String?
+  confirmedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+}
+
+// ═══════════════════════════ v3: Subscriptions & currencies ═══════════════════════════
+
+model Subscription {
+  id            String    @id @default(cuid())
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName  String?
+  planName      String
+  amount        Float
+  currency      String    @default("BDT")
+  interval      String    @default("MONTHLY") // WEEKLY | MONTHLY | QUARTERLY | YEARLY
+  status        String    @default("ACTIVE") // TRIALING | ACTIVE | PAST_DUE | CANCELLED | COMPLETED
+  brandId       String?
+  gatewayCode   String?
+  trialDays     Int       @default(0)
+  trialEndsAt   DateTime?
+  nextBillingAt DateTime?
+  cycles        Int       @default(0)
+  autoRetry     Boolean   @default(true)
+  retryCount    Int       @default(0)
+  maxRetries    Int       @default(4)
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  invoices Invoice[]
+
+  @@index([status])
+  @@index([nextBillingAt])
+}
+
+model Currency {
+  code     String  @id // BDT, USD...
+  symbol   String  @default("৳")
+  rate     Float   @default(1) // vs BDT base
+  decimals Int     @default(2)
+  enabled  Boolean @default(false)
+}
+
+// ═══════════════════════════ v3: Ops center ═══════════════════════════
+
+model Incident {
+  id         String    @id @default(cuid())
+  title      String
+  body       String
+  impact     String    @default("MINOR") // CRITICAL | MAJOR | MINOR | MAINTENANCE
+  status     String    @default("INVESTIGATING") // INVESTIGATING | IDENTIFIED | MONITORING | RESOLVED
+  components String    @default("[]") // JSON array of component names
+  updates    String    @default("[]") // JSON [{at, body, status}]
+  startedAt  DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+model StatusComponent {
+  id        String  @id @default(cuid())
+  name      String
+  status    String  @default("OPERATIONAL") // OPERATIONAL | DEGRADED | PARTIAL | OUTAGE | MAINTENANCE
+  sortOrder Int     @default(0)
+}
+
+model FeatureFlag {
+  id             String  @id @default(cuid())
+  key            String  @unique
+  name           String
+  description    String?
+  enabled        Boolean @default(false)
+  rolloutPercent Int     @default(0)
+}
+
+model ImportJob {
+  id        String    @id @default(cuid())
+  type      String // CUSTOMERS | INVOICES | TRANSACTIONS
+  fileName  String?
+  status    String    @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED
+  total     Int       @default(0)
+  processed Int       @default(0)
+  failed    Int       @default(0)
+  errorLog  String?
+  createdAt DateTime  @default(now())
+  finishedAt DateTime?
+}
+
+model MarketplaceApp {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  category    String // PAYMENTS | ECOMMERCE | ACCOUNTING | NOTIFICATIONS | CRM | TOOLING
+  description String
+  config      String   @default("{}") // JSON settings
+  enabled     Boolean  @default(false)
+  builtin     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model EventLedger {
+  id             String    @id @default(cuid())
+  type           String // checkout.paid, refund.created, inbound.webhook ...
+  idempotencyKey String    @unique
+  subjectRef     String?
+  payload        String
+  status         String    @default("RECEIVED") // RECEIVED | PROCESSED | DEDUPED | FAILED
+  attempts       Int       @default(1)
+  error          String?
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([type])
+  @@index([status])
+}
+
+model NotificationPref {
+  id         String  @id @default(cuid())
+  audience   String  @default("MERCHANT") // MERCHANT | CUSTOMER
+  subjectRef String? // customer id, null = merchant default
+  event      String
+  email      Boolean @default(true)
+  sms        Boolean @default(false)
+  webhook    Boolean @default(true)
+  inapp      Boolean @default(true)
+
+  @@unique([audience, subjectRef, event])
+}
+
+// ═══════════════════════════ v3 relations backfill ═══════════════════════════
+// (Refund/Dispute ↔ Transaction relations declared above; Customer.tags/brandId,
+//  Subscription on Invoice, Passkey on User, OutgoingPayment device relation)

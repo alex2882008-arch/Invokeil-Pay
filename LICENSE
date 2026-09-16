@@ -1,0 +1,96 @@
+═══════════════════════════════════════════════════════════════════════════════
+  PLAIN-LANGUAGE SUMMARY (informational only — the full license below governs)
+  ─────────────────────────────────────────────────────────────────────────
+  • Individuals, students, non-profits, and businesses with fewer than 50
+    employees AND under USD 250,000 annual gross revenue: use it, run it,
+    self-host it, and study it for free ("Community Use").
+  • You may redistribute UNMODIFIED copies with attribution and this license.
+  • Modification, derivative works, and redistribution of modified versions
+    require written permission from Invokeil.
+  • Enterprises beyond those thresholds, OEM/redistribution, white-labeling,
+    or hosting this as a paid service for third parties require a paid
+    Enterprise License — sales@invokeil.com.
+  • No warranty. Invokeil is not liable for damages. Termination applies on
+    breach. Governed by the laws of Bangladesh.
+═══════════════════════════════════════════════════════════════════════════════
+
+Invokeil Pay Community License 1.0
+
+Copyright (c) 2026 Invokeil. All rights reserved.
+
+1. GRANT — COMMUNITY USE
+
+   Subject to the terms of this License, Invokeil grants you a free,
+   non-exclusive, non-transferable license to:
+
+     a. Use and run the Software for any lawful internal purpose, including
+        processing real payments for your own business;
+     b. Self-host the Software on your own infrastructure or on cloud
+        infrastructure you control;
+     c. Study, inspect, and learn from the source code of the Software;
+     d. Redistribute verbatim (unmodified) copies of the Software to others,
+        provided that each copy retains this License, the above copyright
+        notice, and visible attribution to Invokeil.
+
+   This grant applies only to "Community Use", meaning use by: (i) natural
+   persons; (ii) educational and academic institutions; (iii) non-profit
+   organizations; and (iv) businesses that BOTH employ fewer than 50
+   employees AND have annual gross revenue below USD 250,000.
+
+2. RESTRICTIONS
+
+   You may NOT, without prior written permission from Invokeil:
+
+     a. Modify the Software or create derivative works of the Software;
+     b. Redistribute modified versions or derivative works of the Software,
+        in whole or in part;
+     c. Remove or alter any copyright, attribution, branding, or license
+        notices contained in the Software;
+     d. Use the Software to compete with Invokeil or to provide a functionally
+        equivalent payment-automation product to third parties.
+
+   Verbatim (unmodified) redistribution remains permitted under Section 1(d).
+
+3. ENTERPRISE AND COMMERCIAL LICENSING
+
+   A paid Enterprise License (with modification and redistribution rights) is
+   REQUIRED for:
+
+     a. Organizations outside the Community Use thresholds defined in
+        Section 1 (50 or more employees, or annual gross revenue of
+        USD 250,000 or above);
+     b. OEM distribution, resale, or bundling of the Software with other
+        products;
+     c. White-labeling, rebranding, or offering the Software as part of a
+        hosted SaaS platform for third parties.
+
+   Enterprise inquiries: sales@invokeil.com
+
+4. WARRANTY AND LIABILITY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+   INVOKIL BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN
+   AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   You are solely responsible for the operation of your instance, the security
+   of your deployment, and compliance with the laws and regulations applicable
+   to your use, including payment, data-protection, and telecom regulations.
+
+5. TERMINATION
+
+   This License is granted for as long as you comply with its terms. It
+   terminates automatically, without notice, upon any material breach,
+   including any use outside Community Use without a valid Enterprise
+   License. Upon termination you must cease all use of the Software and
+   destroy all copies in your possession. Sections 2, 3, 4, and 6 survive
+   termination.
+
+6. GOVERNING LAW
+
+   This License is governed by and construed in accordance with the laws of
+   Bangladesh, without regard to its conflict-of-laws principles. Any dispute
+   arising out of or in connection with this License shall be subject to the
+   exclusive jurisdiction of the courts of Bangladesh.

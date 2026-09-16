@@ -1,0 +1,156 @@
+// ── setup wizard strings (EN + BN) ─────────────────────────────
+export const WIZARD_EN: Record<string, string> = {
+  wizTitle: 'Setup wizard',
+  wizSubtitle: 'Get Invokeil Pay ready in four quick steps',
+  wizStep: 'Step',
+  wizOf: 'of',
+  wizSkip: 'Skip setup',
+  wizSkipBody: 'You can run the setup wizard anytime from the settings page. Finish now to stop seeing this prompt?',
+  wizSkipConfirm: 'Skip & finish',
+  wizSkipToast: 'Setup completed — you can finish it later from Settings',
+  wizBack: 'Back',
+  wizNext: 'Continue',
+  wizFinish: 'Finish setup',
+
+  // Step indicators
+  step1Label: 'Brand',
+  step2Label: 'Gateways',
+  step3Label: 'Device',
+  step4Label: 'Test checkout',
+
+  // Step 1 — brand
+  s1Title: 'Name your business',
+  s1Description: 'This appears on checkout pages, invoices and payment links your customers see',
+  s1BrandLabel: 'Brand name',
+  s1BrandPh: 'e.g. Rahim Store',
+  s1BkashLabel: 'bKash number',
+  s1BkashPh: '01XXXXXXXXX',
+  s1NagadLabel: 'Nagad number',
+  s1NagadPh: '01XXXXXXXXX',
+  s1SavedToast: 'Brand details saved',
+
+  // Step 2 — gateways
+  s2Title: 'Choose your gateways',
+  s2Description: 'Toggle the payment methods you want to accept. You can fine-tune charges later in Gateways.',
+  s2EnabledCount: '{n} of {total} gateways enabled',
+  s2Hint: 'Customers will only see the enabled methods at checkout',
+  s2SavedToast: 'Gateways updated',
+  s2None: 'No gateway selected — customers will not be able to pay',
+
+  // Step 3 — device
+  s3Title: 'Pair your Android device',
+  s3Description: 'Install the Invokeil Pay app on a phone with your bKash/Nagad SIM. It forwards payment SMS to this panel automatically.',
+  s3NameLabel: 'Device name',
+  s3NamePh: 'e.g. Shop counter phone',
+  s3Create: 'Create device',
+  s3Creating: 'Creating…',
+  s3CreatedTitle: 'Device created — pair it now',
+  s3KeyLabel: 'Device key',
+  s3PairingLabel: 'Pairing code',
+  s3QrHint: 'Open the app → Pair device → scan this QR, or paste the key manually',
+  s3LaterHint: 'You can skip pairing and do it later from the Devices page',
+  s3Bullet1: 'Install the Invokeil Pay Android app on the phone that holds your bKash/Nagad SIM',
+  s3Bullet2: 'Tap Pair device in the app, then scan this QR — or paste the device key manually',
+  s3Bullet3: 'Keep the app running in the background — payment SMS are matched into transactions automatically',
+  s3SavedToast: 'Device created',
+
+  // Step 4 — checkout
+  s4Title: 'Try a test checkout',
+  s4Description: 'Create a one-off payment request and open its public page to see exactly what your customers will see',
+  s4TitleLabel: 'Checkout title',
+  s4TitlePh: 'e.g. Order #1001',
+  s4AmountLabel: 'Amount',
+  s4PhoneLabel: 'Customer phone',
+  s4PhonePh: '01XXXXXXXXX',
+  s4Create: 'Create checkout',
+  s4Creating: 'Creating…',
+  s4CreatedTitle: 'Test checkout ready',
+  s4LinkLabel: 'Public payment link',
+  s4Open: 'Open page',
+  s4Hint: 'Pay it from your own bKash app — the panel will match the SMS and mark it paid automatically',
+  s4SavedToast: 'Checkout created',
+
+  // Complete
+  wizDoneToast: 'Setup complete — welcome aboard!',
+  wizDoneTitle: 'All set!',
+  wizDoneDescription: 'Your panel is configured. You can change everything later in Settings.',
+  wizOpenDashboard: 'Open dashboard',
+}
+
+export const WIZARD_BN: Record<string, string> = {
+  wizTitle: 'সেটআপ উইজার্ড',
+  wizSubtitle: 'চারটি সহজ ধাপে Invokeil Pay প্রস্তুত করুন',
+  wizStep: 'ধাপ',
+  wizOf: '/ ',
+  wizSkip: 'এড়িয়ে যান',
+  wizSkipBody: 'সেটআপ উইজার্ড পরে সেটিংস থেকে যেকোনো সময় চালাতে পারবেন। এখনই শেষ করবেন?',
+  wizSkipConfirm: 'এড়িয়ে শেষ করুন',
+  wizSkipToast: 'সেটআপ সম্পন্ন হয়েছে — পরে সেটিংস থেকে শেষ করতে পারবেন',
+  wizBack: 'পেছনে',
+  wizNext: 'এগিয়ে যান',
+  wizFinish: 'শেষ করুন',
+
+  // Step indicators
+  step1Label: 'ব্র্যান্ড',
+  step2Label: 'গেটওয়ে',
+  step3Label: 'ডিভাইস',
+  step4Label: 'টেস্ট চেকআউট',
+
+  // Step 1 — brand
+  s1Title: 'আপনার ব্যবসার নাম দিন',
+  s1Description: 'কাস্টমার যে চেকআউট পেজ, ইনভয়েস ও পেমেন্ট লিংক দেখবে — সেখানেই এই নামটি থাকবে',
+  s1BrandLabel: 'ব্র্যান্ডের নাম',
+  s1BrandPh: 'যেমনঃ রহিম স্টোর',
+  s1BkashLabel: 'বিকাশ নাম্বার',
+  s1BkashPh: '০১XXXXXXXXX',
+  s1NagadLabel: 'নগদ নাম্বার',
+  s1NagadPh: '০১XXXXXXXXX',
+  s1SavedToast: 'ব্র্যান্ড তথ্য সংরক্ষিত হয়েছে',
+
+  // Step 2 — gateways
+  s2Title: 'গেটওয়ে বেছে নিন',
+  s2Description: 'যে পেমেন্ট পদ্ধতিগুলো গ্রহণ করতে চান সেগুলো চালু করুন। চার্জ পরে গেটওয়ে পেজে ঠিক করতে পারবেন।',
+  s2EnabledCount: '{total}টির মধ্যে {n}টি গেটওয়ে চালু',
+  s2Hint: 'চেকআউটে কাস্টমার শুধু চালু করা পদ্ধতিগুলোই দেখবে',
+  s2SavedToast: 'গেটওয়ে আপডেট হয়েছে',
+  s2None: 'কোনো গেটওয়ে নির্বাচন করা হয়নি — কাস্টমার পেমেন্ট করতে পারবে না',
+
+  // Step 3 — device
+  s3Title: 'অ্যান্ড্রয়েড ডিভাইস পেয়ার করুন',
+  s3Description: 'বিকাশ/নগদ সিমযুক্ত ফোনে Invokeil Pay অ্যাপ ইনস্টল করুন। অ্যাপটি পেমেন্ট এসএমএস স্বয়ংক্রিয়ভাবে এই প্যানেলে পাঠাবে।',
+  s3NameLabel: 'ডিভাইসের নাম',
+  s3NamePh: 'যেমনঃ দোকানের কাউন্টার ফোন',
+  s3Create: 'ডিভাইস তৈরি করুন',
+  s3Creating: 'তৈরি হচ্ছে…',
+  s3CreatedTitle: 'ডিভাইস তৈরি হয়েছে — এখন পেয়ার করুন',
+  s3KeyLabel: 'ডিভাইস কী',
+  s3PairingLabel: 'পেয়ারিং কোড',
+  s3QrHint: 'অ্যাপ খুলুন → ডিভাইস পেয়ার → QR স্ক্যান করুন, অথবা কীটি ম্যানুয়ালি দিন',
+  s3LaterHint: 'পেয়ারিং এখন না করে পরে ডিভাইস পেজ থেকে করতে পারেন',
+  s3Bullet1: 'যে ফোনে বিকাশ/নগদ সিম আছে সেখানে Invokeil Pay অ্যান্ড্রয়েড অ্যাপ ইনস্টল করুন',
+  s3Bullet2: 'অ্যাপে ডিভাইস পেয়ার চাপুন, তারপর QR স্ক্যান করুন — অথবা ডিভাইস কী ম্যানুয়ালি পেস্ট করুন',
+  s3Bullet3: 'অ্যাপটি ব্যাকগ্রাউন্ডে চালু রাখুন — পেমেন্ট এসএমএস স্বয়ংক্রিয়ভাবে ট্রানজেকশনে রূপান্তর হবে',
+  s3SavedToast: 'ডিভাইস তৈরি হয়েছে',
+
+  // Step 4 — checkout
+  s4Title: 'একটি টেস্ট চেকআউট নিন',
+  s4Description: 'একটি পেমেন্ট রিকোয়েস্ট তৈরি করে তার পাবলিক পেজ খুলুন — কাস্টমার ঠিক যা দেখবে তা দেখুন',
+  s4TitleLabel: 'চেকআউট শিরোনাম',
+  s4TitlePh: 'যেমনঃ অর্ডার #১০০১',
+  s4AmountLabel: 'পরিমাণ',
+  s4PhoneLabel: 'কাস্টমার ফোন',
+  s4PhonePh: '০১XXXXXXXXX',
+  s4Create: 'চেকআউট তৈরি করুন',
+  s4Creating: 'তৈরি হচ্ছে…',
+  s4CreatedTitle: 'টেস্ট চেকআউট প্রস্তুত',
+  s4LinkLabel: 'পাবলিক পেমেন্ট লিংক',
+  s4Open: 'পেজ খুলুন',
+  s4Hint: 'নিজের বিকাশ অ্যাপ থেকে পেমেন্ট করুন — প্যানেল এসএমএস মিলিয়ে স্বয়ংক্রিয়ভাবে পেইড করে দেবে',
+  s4SavedToast: 'চেকআউট তৈরি হয়েছে',
+
+  // Complete
+  wizDoneToast: 'সেটআপ সম্পন্ন — স্বাগতম!',
+  wizDoneTitle: 'সব প্রস্তুত!',
+  wizDoneDescription: 'আপনার প্যানেল কনফিগার করা হয়েছে। সবকিছু পরে সেটিংস থেকে বদলাতে পারবেন।',
+  wizOpenDashboard: 'ড্যাশবোর্ড খুলুন',
+}

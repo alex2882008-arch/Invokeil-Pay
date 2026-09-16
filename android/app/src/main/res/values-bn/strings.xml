@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Invokeil Pay</string>
+
+    <!-- Legacy / reuse -->
+    <string name="panel_url">প্যানেলের URL</string>
+    <string name="panel_url_hint">https://your-panel.com</string>
+    <string name="device_key">ডিভাইস কী</string>
+    <string name="device_key_hint">ilp_xxxxxxxxxxxxxxxx</string>
+    <string name="save">সংরক্ষণ</string>
+    <string name="test_connect">সংযোগ ও পরীক্ষা</string>
+    <string name="status">স্ট্যাটাস</string>
+    <string name="ok">ঠিক আছে</string>
+    <string name="cancel">বাতিল</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_dashboard">ড্যাশবোর্ড</string>
+    <string name="nav_log">এসএমএস লগ</string>
+    <string name="nav_notifications">নোটিফিকেশন</string>
+    <string name="nav_outgoing">আউটগোয়িং</string>
+    <string name="nav_settings">সেটিংস</string>
+
+    <!-- Onboarding — shared -->
+    <string name="ob_step_of">ধাপ %1$d / ৩</string>
+    <string name="granted">অনুমোদিত ✓</string>
+    <string name="btn_grant">অনুমতি দিন</string>
+    <string name="btn_continue">এগিয়ে যান</string>
+    <string name="btn_finish">সেটআপ শেষ করুন</string>
+
+    <!-- Onboarding — step 1: welcome -->
+    <string name="ob_welcome_title">ইনভোকেইল পে-তে স্বাগতম</string>
+    <string name="ob_welcome_body">এই অ্যাপটি আপনার মোবাইল ব্যাংকিং পেমেন্টের এসএমএস স্বয়ংক্রিয়ভাবে ও নিরাপদে সরাসরি আপনার ইনভোকেইল পে প্যানেলে পাঠায়।</string>
+    <string name="ob_welcome_bullet_1">• শুধুমাত্র অনুমোদিত প্রেরকের পেমেন্ট এসএমএস ফরওয়ার্ড হয়</string>
+    <string name="ob_welcome_bullet_2">• OTP / পিন / ভেরিফিকেশন কোড কখনও ফোনের বাইরে যায় না</string>
+    <string name="ob_welcome_bullet_3">• প্রতিটি বার্তা অ্যাপের এসএমএস লগে দেখা যায়</string>
+    <string name="btn_get_started">শুরু করুন</string>
+    <string name="lang_en">English</string>
+    <string name="lang_bn">বাংলা</string>
+
+    <!-- Onboarding — step 2: pair -->
+    <string name="ob_pair_title">প্যানেলের সাথে যুক্ত করুন</string>
+    <string name="ob_pair_body">প্যানেলে দেখানো পেয়ারিং QR কোডটি স্ক্যান করুন (Devices → Add device), অথবা হাতে লিখে তথ্য দিন।</string>
+    <string name="btn_scan_qr">QR কোড স্ক্যান করুন</string>
+    <string name="pairing_code">পেয়ারিং কোড (ঐচ্ছিক)</string>
+    <string name="pairing_code_hint">১২৩৪৫৬</string>
+    <string name="testing">সংযোগ পরীক্ষা চলছে…</string>
+    <string name="connected_ok">✓ সংযুক্ত — ডিভাইস কী গৃহীত হয়েছে</string>
+    <string name="test_fail">সংযোগ ব্যর্থ: %1$s</string>
+    <string name="test_ok">✓ সংযোগ সফল হয়েছে</string>
+    <string name="err_bad_url">সঠিক প্যানেল URL দিন (https://…)</string>
+    <string name="err_bad_key">ডিভাইস কী অবশ্যই ilp_ দিয়ে শুরু হবে</string>
+    <string name="err_scan_invalid">এটি সঠিক Invokeil Pay QR কোড নয়</string>
+    <string name="scan_prompt">ক্যামেরা প্যানেলের পেয়ারিং QR কোডের দিকে ধরুন</string>
+
+    <!-- Onboarding — step 3: permissions -->
+    <string name="ob_perm_title">প্রয়োজনীয় অনুমতিসমূহ</string>
+    <string name="ob_perm_body">ব্যাকগ্রাউন্ডে পেমেন্ট এসএমএস শুনতে এগুলো অনুমতি দিন।</string>
+    <string name="perm_sms_title">এসএমএস পড়া ও গ্রহণ</string>
+    <string name="perm_sms_body">আসা পেমেন্ট এসএমএস ধরতে এটি প্রয়োজন। শুধু অনুমোদিত প্রেরকের বার্তা ফরওয়ার্ড হয় — OTP কখনও নয় — এবং সবকিছু লোকাল লগে থাকে।</string>
+    <string name="perm_notif_title">নোটিফিকেশন</string>
+    <string name="perm_notif_body">চলমান "শুনছে" স্ট্যাটাস ও ফরওয়ার্ডিংয়ের ফলাফল দেখায়। পরে সেটিংস থেকে বন্ধ করা যাবে।</string>
+    <string name="perm_battery_title">ব্যাটারি অপ্টিমাইজেশন থেকে অব্যাহতি</string>
+    <string name="perm_battery_body">এটি দিলে ফোন ঘুমিয়ে থাকলেও এসএমএস তাৎক্ষণিক ফরওয়ার্ড হয়। না দিলে বার্তা দেরিতে যেতে পারে।</string>
+
+    <!-- Prominent disclosure (shown before the SMS permission prompt) -->
+    <string name="disclosure_title">এসএমএস তথ্য সংক্রান্ত প্রকাশনা</string>
+    <string name="disclosure_body">Invokeil Pay আসা এসএমএস বার্তা সংগ্রহ করে এবং কেবল গ্রাহকের পেমেন্ট যাচাইয়ের উদ্দেশ্যে আপনার যুক্ত প্যানেলে পাঠায়। এসএমএস তথ্য শুধু পেমেন্ট যাচাইয়ের জন্য ব্যবহৃত হয়: বিক্রি করা হয় না, এবং অন্য কোনো তৃতীয় পক্ষের সাথে শেয়ার করা হয় না। OTP, পিন বা ভেরিফিকেশন কোডযুক্ত বার্তা আপনার ডিভাইসেই বাদ দেওয়া হয়, কখনও আপলোড হয় না। শুধু আপনার তালিকাভুক্ত প্রেরকের (যেমন bKash, NAGAD) বার্তা ফরওয়ার্ড হয় এবং প্রতিটি ফরওয়ার্ড হওয়া বার্তা অ্যাপের এসএমএস লগে সংরক্ষিত থাকে। সেটিংসে Unpair চাপলে যেকোনো সময় ফরওয়ার্ডিং বন্ধ করতে পারবেন।</string>
+    <string name="disclosure_accept">বুঝেছি ও অনুমতি দিচ্ছি</string>
+    <string name="disclosure_decline">এখন না</string>
+
+    <!-- Dashboard -->
+    <string name="dash_paired">প্যানেলের সাথে যুক্ত</string>
+    <string name="dash_unpaired">যুক্ত নয়</string>
+    <string name="dash_status_listening">শুনছে</string>
+    <string name="dash_sub_listening">পেমেন্ট এসএমএস রিয়েল-টাইমে ফরওয়ার্ড হচ্ছে</string>
+    <string name="dash_status_paused">বিরত</string>
+    <string name="dash_sub_paused">ফরওয়ার্ড হচ্ছে না — পেয়ারিং ও এসএমএস অনুমতি দেখুন</string>
+    <string name="dash_device">ডিভাইস</string>
+    <string name="dash_stat_today">আজ ফরওয়ার্ড</string>
+    <string name="dash_stat_total">মোট ফরওয়ার্ড</string>
+    <string name="dash_stat_queue">সারিতে / ব্যর্থ</string>
+    <string name="dash_stat_sync">শেষ সিঙ্ক</string>
+    <string name="value_never">কখনও নয়</string>
+    <string name="banner_auth_error">প্যানেল ডিভাইস কী প্রত্যাখ্যান করেছে (HTTP 401/403)। আবার পেয়ার করুন বা কী ঠিক করুন।</string>
+    <string name="btn_test_connection">সংযোগ পরীক্ষা</string>
+    <string name="btn_send_test_sms">পরীক্ষামূলক এসএমএস পাঠান</string>
+    <string name="btn_open_dashboard">ওয়েব ড্যাশবোর্ড খুলুন</string>
+    <string name="btn_edit">সম্পাদনা</string>
+    <string name="btn_unpair">আনপেয়ার</string>
+    <string name="dialog_edit_title">পেয়ারিং সম্পাদনা</string>
+    <string name="unpair_confirm_title">ডিভাইসটি আনপেয়ার করবেন?</string>
+    <string name="unpair_confirm_body">ডিভাইস কী মুছে যাবে এবং এসএমএস ফরওয়ার্ডিং বন্ধ হবে। এসএমএস লগ এই ফোনেই থাকবে। প্যানেল থেকে যেকোনো সময় আবার পেয়ার করা যাবে।</string>
+    <string name="test_sms_body">Invokeil Pay পরীক্ষামূলক বার্তা — প্যানেলে এটি দেখতে পেলে ফরওয়ার্ডিং ঠিক আছে।</string>
+    <string name="test_sms_sent">পরীক্ষামূলক এসএমএস প্যানেলে পাঠানো হয়েছে ✓</string>
+    <string name="test_sms_queued">সংযোগ নেই — পরীক্ষামূলক এসএমএস পুনঃপ্রেরণের জন্য সংরক্ষিত</string>
+    <string name="err_no_config">প্রথমে প্যানেলের সাথে যুক্ত করুন</string>
+
+    <!-- SMS log -->
+    <string name="log_title">এসএমএস লগ</string>
+    <string name="log_clear">মুছুন</string>
+    <string name="log_empty">এখনও কোনো এসএমএস ধরা পড়েনি।\nপেমেন্ট এসএমএস এখানে দেখা যাবে।</string>
+    <string name="chip_all">সব</string>
+    <string name="status_forwarded">ফরওয়ার্ড হয়েছে</string>
+    <string name="status_queued">অপেক্ষমাণ</string>
+    <string name="status_failed">ব্যর্থ</string>
+    <string name="status_filtered">বাদ দেওয়া</string>
+    <string name="detail_title">%1$s — বিবরণ</string>
+    <string name="detail_time">গৃহীত</string>
+    <string name="detail_status">স্ট্যাটাস</string>
+    <string name="detail_note">কারণ</string>
+    <string name="detail_body">সম্পূর্ণ বার্তা</string>
+    <string name="btn_retry">আবার চেষ্টা</string>
+    <string name="retried_ok">পাঠানো হয়েছে ✓</string>
+    <string name="retried_fail">এখনও ব্যর্থ — পুনঃপ্রেরণের জন্য সংরক্ষিত</string>
+    <string name="clear_log_confirm">লোকাল এসএমএস লগের সব এন্ট্রি মুছে ফেলবেন? প্যানেলে ইতোমধ্যে পাঠানো বার্তায় কোনো প্রভাব পড়বে না।</string>
+    <string name="reason_not_whitelisted">প্রেরক তালিকাভুক্ত নয়</string>
+    <string name="reason_otp">OTP / পিন / কোড — লোকালি ব্লক করা হয়েছে</string>
+    <string name="reason_not_paired">এখনও পেয়ার করা হয়নি — সারিতে আছে</string>
+    <string name="reason_key_rejected">ডিভাইস কী প্রত্যাখ্যাত</string>
+    <string name="reason_network">নেটওয়ার্ক সমস্যা — আবার চেষ্টা চলছে</string>
+
+    <!-- Settings -->
+    <string name="settings_title">সেটিংস</string>
+    <string name="settings_language">ভাষা</string>
+    <string name="settings_theme">থিম</string>
+    <string name="theme_system">সিস্টেম</string>
+    <string name="theme_light">লাইট</string>
+    <string name="theme_dark">ডার্ক</string>
+    <string name="settings_app_lock">অ্যাপ লক</string>
+    <string name="app_lock_desc">অ্যাপ খুলতে ৪ সংখ্যার পিন (বা বায়োমেট্রিক) লাগবে</string>
+    <string name="app_lock_disabled">অ্যাপ লক বন্ধ করা হয়েছে</string>
+    <string name="btn_set_pin">পিন সেট করুন</string>
+    <string name="btn_remove_pin">পিন মুছুন</string>
+    <string name="dialog_pin_title">৪ সংখ্যার পিন সেট করুন</string>
+    <string name="dialog_pin_hint">নতুন পিন</string>
+    <string name="dialog_pin_confirm_hint">পিন নিশ্চিত করুন</string>
+    <string name="err_pin_mismatch">পিন দুটি মিলছে না</string>
+    <string name="err_pin_digits">পিন অবশ্যই ৪টি সংখ্যার হতে হবে</string>
+    <string name="settings_notifications">ইভেন্ট নোটিফিকেশন</string>
+    <string name="notifications_desc">এসএমএস ফরওয়ার্ড বা ব্যর্থ হলে জানায়</string>
+    <string name="settings_custom_senders">কাস্টম প্রেরক</string>
+    <string name="custom_senders_desc">অন্তর্নির্মিত তালিকার বাইরে অতিরিক্ত প্রেরক আইডি যোগ করুন</string>
+    <string name="btn_add_sender">প্রেরক যোগ করুন</string>
+    <string name="dialog_sender_title">প্রেরক আইডি যোগ করুন</string>
+    <string name="dialog_sender_hint">যেমন bKash বা 16216</string>
+    <string name="tap_sender_remove">মুছতে প্রেরকের নামে চাপ দিন</string>
+    <string name="sender_added">প্রেরক যোগ হয়েছে</string>
+    <string name="sender_removed">প্রেরক মুছে ফেলা হয়েছে</string>
+    <string name="settings_gate_info">এসএমএস গেট</string>
+    <string name="gate_info_body">ফরওয়ার্ড হয়: তালিকাভুক্ত পেমেন্ট প্রেরক (bKash, NAGAD, 16216, 8446, UPAY, 16259, CellFin, TeleCash, mCash, OKWallet, PathaoPay, iPay + আপনার যোগ করা এন্ট্রি)। লোকালি বাদ দেওয়া হয়, কখনও আপলোড হয় না: OTP / পিন / ভেরিফিকেশন কোডযুক্ত বার্তা এবং তালিকার বাইরের সব প্রেরক।</string>
+    <string name="settings_unpair">ডিভাইস আনপেয়ার</string>
+    <string name="settings_disclosure">এসএমএস প্রকাশনা দেখুন</string>
+    <string name="settings_version">অ্যাপ সংস্করণ</string>
+    <string name="not_paired">যুক্ত নয়</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_service">লিসেনিং সার্ভিস</string>
+    <string name="notif_channel_alerts">ফরওয়ার্ডিং সতর্কতা</string>
+    <string name="notif_title">Invokeil Pay — শুনছে</string>
+    <string name="notif_text">%1$s-এ পেমেন্ট এসএমএস ফরওয়ার্ড হচ্ছে</string>
+    <string name="alert_forwarded_title">পেমেন্ট এসএমএস ফরওয়ার্ড হয়েছে</string>
+    <string name="alert_forwarded_body">%1$s: %2$s</string>
+    <string name="alert_failed_title">ফরওয়ার্ডিং ব্যর্থ</string>
+    <string name="alert_failed_body">%1$dটি বার্তা পাঠানো যায়নি — স্বয়ংক্রিয়ভাবে আবার চেষ্টা হচ্ছে।</string>
+
+    <!-- App lock -->
+    <string name="biometric_title">Invokeil Pay আনলক করুন</string>
+    <string name="biometric_sub">চালিয়ে যেতে নিজের পরিচয় নিশ্চিত করুন</string>
+    <string name="btn_use_pin">পিন দিন</string>
+    <string name="btn_unlock">আনলক</string>
+    <string name="err_pin_wrong">ভুল পিন</string>
+
+    <!-- v3: sandbox badge -->
+    <string name="badge_sandbox">স্যান্ডবক্স মোড</string>
+
+    <!-- v3: dashboard summary cards -->
+    <string name="dash_notifications">নোটিফিকেশন</string>
+    <string name="dash_notifications_sub">সাম্প্রতিক পেমেন্ট, ইমেইল ও এসএমএস</string>
+    <string name="dash_outgoing">আউটগোয়িং পেমেন্ট</string>
+    <string name="dash_outgoing_sub">প্যানেল থেকে পেমেন্ট কমান্ড</string>
+    <string name="btn_refresh">রিফ্রেশ</string>
+    <string name="dash_count_recent">সাম্প্রতিক %1$dটি</string>
+    <string name="dash_count_active">চলমান %1$dটি</string>
+
+    <!-- v3: notifications tab -->
+    <string name="notif_empty">এখন নতুন কিছু নেই।\nপ্যানেলের পেমেন্ট, ইমেইল ও এসএমএস এখানে দেখা যাবে।</string>
+
+    <!-- v3: outgoing payments tab (beta) -->
+    <string name="outgoing_empty">এখনও কোনো পেমেন্ট কমান্ড নেই।\n\nআউটগোয়িং পেমেন্ট একটি বিটা ফিচার: প্যানেলে অনুমোদিত কমান্ড এখানে আসে, আপনি মোবাইল-মানি অ্যাপে পাঠানোর পর নিশ্চিত (Confirm) বা ব্যর্থ (Failed) হিসেবে জানান।</string>
+    <string name="outgoing_confirmed">নিশ্চিত</string>
+    <string name="outgoing_dispatched">প্রেরিত</string>
+    <string name="outgoing_cancelled">বাতিল</string>
+    <string name="btn_confirm">নিশ্চিত</string>
+    <string name="btn_mark_failed">ব্যর্থ</string>
+    <string name="outgoing_result_ok">প্যানেলে ফলাফল পাঠানো হয়েছে ✓</string>
+    <string name="outgoing_result_fail">প্যানেলে পৌঁছানো যায়নি — আবার চেষ্টা করুন</string>
+</resources>
