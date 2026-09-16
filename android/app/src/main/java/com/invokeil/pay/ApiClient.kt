@@ -461,10 +461,11 @@ object ApiClient {
             val sm = ctx.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)
                 as? SubscriptionManager
             val subs = sm?.activeSubscriptionInfoList ?: return arr
-            val tm = ctx.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             for (s in subs) {
                 val number = try {
-                    tm.getLine1Number(s.subscriptionId) ?: ""
+                    // SubscriptionInfo.getNumber() — public since API 29 (our minSdk);
+                    // returns "" when the carrier doesn't store MSISDN on the SIM.
+                    s.number ?: ""
                 } catch (e: Exception) {
                     ""
                 }
