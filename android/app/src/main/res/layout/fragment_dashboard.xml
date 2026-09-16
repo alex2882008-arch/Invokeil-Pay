@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -7,8 +8,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="16dp">
 
         <!-- Sandbox mode badge (shown when device config reports SANDBOX) -->
         <TextView
@@ -17,89 +19,90 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_status_chip"
-            android:backgroundTint="@color/status_queued"
+            android:backgroundTint="@color/chip_fill_warning"
             android:gravity="center"
-            android:padding="10dp"
+            android:letterSpacing="0.06"
+            android:paddingStart="12dp"
+            android:paddingTop="9dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="9dp"
             android:text="@string/badge_sandbox"
-            android:textColor="@android:color/white"
+            android:textColor="@color/chip_text_warning"
             android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
         <!-- Paired status card -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/card_bg"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/text_title"
+                        style="@style/TextAppearance.Invokeil.Title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/dash_unpaired" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_edit"
+                        style="@style/Widget.Invokeil.Button.Compact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="@string/btn_edit" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/text_title"
-                    android:layout_width="0dp"
+                    android:id="@+id/text_url"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/dash_unpaired"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_item_card"
+                    android:fontFamily="monospace"
+                    android:padding="10dp"
+                    android:text="—"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    style="@style/TextAppearance.Invokeil.SectionHeader"
+                    android:text="@string/dash_device" />
+
+                <TextView
+                    android:id="@+id/text_device"
+                    style="@style/TextAppearance.Invokeil.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="—" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_edit"
-                    style="?attr/materialButtonOutlinedStyle"
+                    android:id="@+id/btn_unpair"
+                    style="@style/Widget.Invokeil.Button.Compact.Danger"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:minWidth="0dp"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:text="@string/btn_edit"
-                    android:textSize="12sp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/btn_unpair" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_url"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="monospace"
-                android:text="—"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/dash_device"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/text_device"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="—"
-                android:textSize="14sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_unpair"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:layout_marginTop="12dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text="@string/btn_unpair"
-                android:textColor="@color/status_failed"
-                android:textSize="12sp" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Auth error banner -->
         <TextView
@@ -108,310 +111,370 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_status_chip"
-            android:backgroundTint="@color/status_failed"
+            android:backgroundTint="@color/chip_fill_danger"
+            android:drawableStart="@drawable/ic_warning"
+            android:drawablePadding="8dp"
+            android:drawableTint="@color/chip_text_danger"
+            android:gravity="center_vertical"
             android:padding="12dp"
             android:text="@string/banner_auth_error"
-            android:textColor="@android:color/white"
+            android:textColor="@color/chip_text_danger"
             android:textSize="13sp"
             android:visibility="gone" />
 
         <!-- Status indicator -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:layout_marginTop="12dp">
 
-            <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <View
-                    android:id="@+id/dot_status"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/dot_status" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/text_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:letterSpacing="0.15"
-                android:text="@string/dash_status_paused"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/text_status_sub"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textAlignment="center"
-                android:text="@string/dash_sub_paused"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="13sp" />
-        </LinearLayout>
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <View
+                        android:id="@+id/dot_status"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/dot_status" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/text_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:letterSpacing="0.12"
+                    android:text="@string/dash_status_paused"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/text_status_sub"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textAlignment="center"
+                    android:text="@string/dash_sub_paused"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Stats grid -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Invokeil.Card"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/card_bg"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/stat_today"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@color/brand_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/dash_stat_today"
-                    android:textAlignment="center"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/stat_today"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
 
-            <LinearLayout
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/dash_stat_today"
+                        android:textAlignment="center" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Invokeil.Card"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/card_bg"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/stat_total"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@color/brand_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/dash_stat_total"
-                    android:textAlignment="center"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/stat_total"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/dash_stat_total"
+                        android:textAlignment="center" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Invokeil.Card"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/card_bg"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/stat_queue"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@color/status_queued"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/dash_stat_queue"
-                    android:textAlignment="center"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/stat_queue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/status_queued"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
 
-            <LinearLayout
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/dash_stat_queue"
+                        android:textAlignment="center" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Invokeil.Card"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/card_bg"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/stat_sync"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/value_never"
-                    android:textColor="@color/brand_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/dash_stat_sync"
-                    android:textAlignment="center"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/stat_sync"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/value_never"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/dash_stat_sync"
+                        android:textAlignment="center" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <!-- Notifications summary card (v3) -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_notifications"
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:foreground="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
+            android:clickable="true"
+            android:focusable="true">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_kind_icon"
+                    android:contentDescription="@null"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_bell"
+                    app:tint="@color/brand_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/dash_notifications"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/dash_notifications_sub" />
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/text_notif_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/dash_notifications"
-                    android:textSize="15sp"
+                    android:layout_marginEnd="6dp"
+                    android:text="—"
+                    android:textColor="@color/brand_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/dash_notifications_sub"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_chevron_right" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_notif_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="—"
-                android:textColor="@color/brand_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Outgoing payments queue card (v3) -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_outgoing"
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/card_bg"
-            android:foreground="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_kind_icon"
+                    android:contentDescription="@null"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_outgoing"
+                    app:tint="@color/brand_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/dash_outgoing"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/dash_outgoing_sub" />
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/text_outgoing_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/dash_outgoing"
-                    android:textSize="15sp"
+                    android:layout_marginEnd="10dp"
+                    android:text="—"
+                    android:textColor="@color/status_queued"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_outgoing_refresh"
+                    style="@style/Widget.Invokeil.Button.Compact"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/dash_outgoing_sub"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    android:text="@string/btn_refresh" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_outgoing_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:text="—"
-                android:textColor="@color/status_queued"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_outgoing_refresh"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/btn_refresh"
-                android:textSize="12sp" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Actions -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_test"
+            style="@style/Widget.Invokeil.Button.Primary"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             android:layout_marginTop="16dp"
             android:text="@string/btn_test_connection" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_send_test"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.Invokeil.Button.Secondary"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             android:layout_marginTop="8dp"
             android:text="@string/btn_send_test_sms" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_open_dashboard"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.Invokeil.Button.Secondary"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="24dp"
             android:text="@string/btn_open_dashboard" />

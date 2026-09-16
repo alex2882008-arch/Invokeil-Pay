@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="Islami Bank"><title>Islami Bank</title>
+  <path d="M36 26 A 14.4 14.4 0 1 0 36 50 A 20 20 0 0 1 36 26 Z" fill="#006B3F"/>
+  <circle cx="41" cy="31" r="2.5" fill="#006B3F"/>
+  <text x="116" y="43" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#006B3F">Islami Bank</text>
+  <text x="116" y="63" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="1.5" fill="#006B3F" opacity="0.75">Bangladesh Limited</text></svg>

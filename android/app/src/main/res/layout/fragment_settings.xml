@@ -8,293 +8,310 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="16dp">
 
         <TextView
+            style="@style/TextAppearance.Invokeil.Title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_title"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:text="@string/settings_title" />
 
         <!-- Language -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/card_bg"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="16dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_language"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggle_lang"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:selectionRequired="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_lang_en"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                <TextView
+                    style="@style/TextAppearance.Invokeil.SectionHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/lang_en" />
+                    android:text="@string/settings_language" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_lang_bn"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggle_lang"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/lang_bn" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-        </LinearLayout>
+                    android:layout_marginTop="12dp"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_lang_en"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="@string/lang_en" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_lang_bn"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="@string/lang_bn" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Theme -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="8dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_theme"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <RadioGroup
-                android:id="@+id/radio_theme"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
-
-                <RadioButton
-                    android:id="@+id/radio_theme_system"
+                <TextView
+                    style="@style/TextAppearance.Invokeil.SectionHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="44dp"
-                    android:text="@string/theme_system" />
+                    android:text="@string/settings_theme" />
 
-                <RadioButton
-                    android:id="@+id/radio_theme_light"
+                <RadioGroup
+                    android:id="@+id/radio_theme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="44dp"
-                    android:text="@string/theme_light" />
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
 
-                <RadioButton
-                    android:id="@+id/radio_theme_dark"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="44dp"
-                    android:text="@string/theme_dark" />
-            </RadioGroup>
-        </LinearLayout>
+                    <RadioButton
+                        android:id="@+id/radio_theme_system"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:text="@string/theme_system"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_theme_light"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:text="@string/theme_light"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_theme_dark"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:text="@string/theme_dark"
+                        android:textSize="14sp" />
+                </RadioGroup>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- App lock -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
+            android:layout_marginTop="8dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <TextView
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_app_lock"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="match_parent"
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.SectionHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_app_lock" />
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/app_lock_desc" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_app_lock"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/app_lock_desc"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_pin"
+                    style="@style/Widget.Invokeil.Button.Compact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/btn_set_pin" />
             </LinearLayout>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switch_app_lock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_pin"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_marginStart="10dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/btn_set_pin"
-                android:textSize="12sp" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Event notifications -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
+            android:layout_marginTop="8dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.SectionHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_notifications" />
+
+                    <TextView
+                        style="@style/TextAppearance.Invokeil.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/notifications_desc" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_notifications"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Custom senders -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <TextView
+                    style="@style/TextAppearance.Invokeil.SectionHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_notifications"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:text="@string/settings_custom_senders" />
 
                 <TextView
+                    style="@style/TextAppearance.Invokeil.Caption"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="@string/notifications_desc"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    android:text="@string/custom_senders_desc" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chip_senders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/text_senders_hint"
+                    style="@style/TextAppearance.Invokeil.Caption"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/tap_sender_remove" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_add_sender"
+                    style="@style/Widget.Invokeil.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/btn_add_sender" />
             </LinearLayout>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switch_notifications"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <!-- Custom senders -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_custom_senders"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/custom_senders_desc"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="12sp" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chip_senders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:id="@+id/text_senders_hint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/tap_sender_remove"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="11sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_add_sender"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/btn_add_sender" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- SMS gate info -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Invokeil.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/card_bg"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="8dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_gate_info"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/gate_info_body"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="12sp" />
+                <TextView
+                    style="@style/TextAppearance.Invokeil.SectionHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_gate_info" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_disclosure"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="10dp"
-                android:text="@string/settings_disclosure" />
-        </LinearLayout>
+                <TextView
+                    style="@style/TextAppearance.Invokeil.Caption"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/gate_info_body" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_disclosure"
+                    style="@style/Widget.Invokeil.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/settings_disclosure" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Unpair -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_unpair"
+            style="@style/Widget.Invokeil.Button.Destructive"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             android:layout_marginTop="16dp"
-            android:backgroundTint="@color/status_failed"
             android:text="@string/settings_unpair" />
 
         <!-- Version -->
         <TextView
             android:id="@+id/text_version"
+            style="@style/TextAppearance.Invokeil.Caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="24dp"
-            android:gravity="center"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="12sp" />
+            android:gravity="center" />
     </LinearLayout>
 </ScrollView>

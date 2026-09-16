@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/license-Community%201.0-blueviolet)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platform-Web%20·%20Android%20·%20API-16A34A)](#)
 
-A PipraPay-inspired, SMS-verification payment gateway panel: pair an Android
+A PipraPay-parity, SMS-verification payment gateway panel: pair an Android
 phone, receive bKash / Nagad / Rocket / Upay payment SMS in real time, match
 them to checkouts, invoices and links, and manage everything from a modern
 admin panel — fully self-hosted.
@@ -25,7 +25,7 @@ admin panel — fully self-hosted.
 | Area | Modules |
 |---|---|
 | **Payments core** | Dashboard & live stats, Transactions (+ detail, CSV), Checkouts (hosted pages), Payment links, Invoices (+ public view & reminders) |
-| **Gateways** | 56-gateway catalog (bKash, Nagad, Rocket, Upay, banks, PSPs), per-gateway charges, brand-aware gateway logos |
+| **Gateways** | 66-gateway catalog with full PipraPay parity — every MFS tier (Personal/Agent/Merchant) keeps its own flow: bKash/Nagad/Rocket/Upay/Tap/TeleCash/mCash/OK Wallet/iPay/PathaoPay/CellFin + banks, PSPs, crypto; per-gateway charges, real brand-wordmark logos, EN+BN step-by-step payment instructions |
 | **Automation** | Device/SMS verification pipeline, Email automation (320-template catalog, provider failover), SMS gateway (Twilio/Telnyx/Plivo/textbee/AWS SNS), Message templates per brand |
 | **Operations** | Refunds & approvals, Disputes, Settlements & accounting, Risk engine (velocity / amount / list / hour rules), KYC profiles |
 | **Growth** | Subscriptions & recurring billing, Customers + Customer-360, Brands (white-label), Notification preferences, Marketplace apps |
@@ -53,7 +53,7 @@ cp .env.example .env   # if present, or create .env with DATABASE_URL="file:./db
 # 3. Create the database schema
 bunx prisma db push
 
-# 4. Seed the demo dataset (56 gateways, devices, checkouts, invoices, …)
+# 4. Seed the demo dataset (66 gateways, devices, checkouts, invoices, …)
 bun run db:seed
 
 # 5. Run

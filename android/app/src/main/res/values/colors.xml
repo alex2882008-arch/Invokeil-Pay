@@ -1,13 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand -->
+    <!-- Brand palette — mirrors the Invokeil Pay web panel (primary blue #2563EB) -->
     <color name="brand_primary">#2563EB</color>
     <color name="brand_dark">#1E40AF</color>
+    <color name="brand_deep">#172554</color>
     <color name="brand_soft">#DBEAFE</color>
+    <color name="brand_container">#EFF6FF</color>
 
-    <!-- Status colors (forwarded / queued / failed / filtered) -->
+    <!-- Semantic status colors (success / warning / destructive / neutral) -->
     <color name="status_forwarded">#16A34A</color>
     <color name="status_queued">#D97706</color>
     <color name="status_failed">#DC2626</color>
-    <color name="status_filtered">#6B7280</color>
+    <color name="status_filtered">#64748B</color>
+
+    <!-- Surfaces & text — light values; deep-navy dark variants live in values-night/colors.xml -->
+    <color name="bg_page">#F1F5F9</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="card_stroke">#E2E8F0</color>
+    <color name="text_muted">#64748B</color>
+    <color name="empty_icon">#CBD5E1</color>
+    <color name="splash_bg">#FFFFFF</color>
+
+    <!-- Soft chip fills: status colors at ~12% alpha (soft colored pill backgrounds) -->
+    <color name="chip_fill_success">#1F16A34A</color>
+    <color name="chip_fill_warning">#1FD97706</color>
+    <color name="chip_fill_danger">#1FDC2626</color>
+    <color name="chip_fill_info">#1F2563EB</color>
+    <color name="chip_fill_neutral">#1F64748B</color>
+
+    <!-- Chip label tones — readable solid colors for text on the soft fills -->
+    <color name="chip_text_success">#15803D</color>
+    <color name="chip_text_warning">#B45309</color>
+    <color name="chip_text_danger">#B91C1C</color>
+    <color name="chip_text_info">#1D4ED8</color>
+    <color name="chip_text_neutral">#475569</color>
+
+    <!-- Brand-tinted ripple for cards / clickable rows -->
+    <color name="ripple_brand">#1F2563EB</color>
 </resources>

@@ -53,6 +53,10 @@ function sanitize(key: string, raw: unknown): string {
       return value === 'bn' ? 'bn' : 'en'
     case 'brandName':
       return value.slice(0, 80)
+    case 'brandLogo':
+      // Logo can be a URL or an inline data-URL (uploaded image) — allow ~300KB.
+      if (value.length > 300_000) throw new HttpError(400, 'brandLogo is too large — use an image under 300KB')
+      return value
     default:
       return value.slice(0, 500)
   }

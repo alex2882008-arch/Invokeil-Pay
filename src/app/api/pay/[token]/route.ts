@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { jsonError, HttpError } from '@/lib/auth'
 import { getMergedSettings } from '@/lib/settings-defaults'
 import { safeJsonParse } from '@/lib/links-server'
+import { GATEWAY_CATALOG } from '@/lib/gateways'
 
 // ── Public checkout API (no auth — token is the capability) ──────────────────
 // GET  /api/pay/[token]         → checkout + brand + payTo + gateways + faqs
@@ -53,11 +54,14 @@ export async function GET(_req: Request, ctx: RouteCtx) {
       status = updated?.status ?? 'EXPIRED'
     }
 
-    const [settings, gateways, faqs] = await Promise.all([
+    const [settings, gateways, faqs, defaultBrand] = await Promise.all([
       getMergedSettings(),
       db.gateway.findMany({ where: { enabled: true }, orderBy: { sortOrder: 'asc' } }),
       db.faqItem.findMany({ where: { active: true }, orderBy: { sortOrder: 'asc' } }),
+      db.brand.findFirst({ where: { active: true }, orderBy: { createdAt: 'asc' }, select: { logoUrl: true, name: true } }),
     ])
+
+    const brandLogo = settings.brandLogo || defaultBrand?.logoUrl || ''
 
     return Response.json({
       checkout: {
@@ -80,6 +84,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
       brand: {
         name: settings.brandName || 'Invokeil Pay',
         tagline: settings.brandTagline || '',
+        logo: brandLogo,
         supportPhone: settings.supportPhone || '',
         supportEmail: settings.supportEmail || '',
         supportWhatsApp: settings.supportWhatsApp || '',
@@ -96,25 +101,35 @@ export async function GET(_req: Request, ctx: RouteCtx) {
         number_mcash: settings.number_mcash || '',
         number_okwallet: settings.number_okwallet || '',
       },
-      gateways: gateways.map((g) => ({
-        code: g.code,
-        name: g.name,
-        mfs: g.mfs,
-        category: g.category,
-        type: g.type,
-        accountType: g.accountType,
-        color: g.color,
-        textColor: g.textColor || '#FFFFFF',
-        icon: g.icon,
-        accountNumber: g.accountNumber,
-        instructions: g.instructions,
-        minAmount: g.minAmount,
-        maxAmount: g.maxAmount,
-        chargeFixed: g.chargeFixed,
-        chargePercent: g.chargePercent,
-        discountFixed: g.discountFixed,
-        discountPercent: g.discountPercent,
-      })),
+      gateways: gateways.map((g) => {
+        // PipraPay-exact payment flow comes from the catalog (method + QR availability).
+        const seed = GATEWAY_CATALOG.find((s) => s.code === g.code)
+        const method = seed?.method ?? (g.category === 'MFS'
+          ? g.accountType === 'AGENT' ? 'CASH_OUT' : g.accountType === 'MERCHANT' ? 'MAKE_PAYMENT' : 'SEND_MONEY'
+          : g.category === 'BANK' ? 'BANK_TRANSFER' : g.type === 'API' ? 'API_CHECKOUT' : 'MANUAL_TRANSFER')
+        return {
+          code: g.code,
+          name: g.name,
+          mfs: g.mfs,
+          category: g.category,
+          type: g.type,
+          accountType: g.accountType,
+          color: g.color,
+          textColor: g.textColor || '#FFFFFF',
+          icon: g.icon,
+          accountNumber: g.accountNumber,
+          instructions: g.instructions,
+          qrImage: g.qrImage,
+          method,
+          hasQr: seed?.hasQr ?? g.category === 'MFS',
+          minAmount: g.minAmount,
+          maxAmount: g.maxAmount,
+          chargeFixed: g.chargeFixed,
+          chargePercent: g.chargePercent,
+          discountFixed: g.discountFixed,
+          discountPercent: g.discountPercent,
+        }
+      }),
       faqs: faqs.map((f) => ({ question: f.question, answer: f.answer })),
     })
   } catch (err) {

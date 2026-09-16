@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- DayNight theme: follows the system dark mode; in-app override lives in Settings.
-         Brand accent is #2563EB (colorPrimary); cards are rounded 16dp via shape styles. -->
+         Brand accent is #2563EB (colorPrimary); cards are rounded 16dp via shape styles;
+         the status bar uses the deep-navy brand tone for a cohesive dark top edge. -->
     <style name="Theme.InvokeilPay" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">#2563EB</item>
+        <item name="colorPrimary">@color/brand_primary</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#1E40AF</item>
+        <item name="colorSecondary">@color/brand_dark</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSurface">@color/surface_card</item>
+        <item name="android:colorBackground">@color/bg_page</item>
+        <item name="android:windowBackground">@color/bg_page</item>
+        <item name="android:statusBarColor">@color/brand_deep</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Invokeil.Small</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Invokeil.Medium</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Invokeil.Large</item>
+        <!-- Android 12+ system splash: white background with the brand logo centered.
+             Pre-Android-12 devices fall back to the clean window background above. -->
+        <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+    </style>
+
+    <!-- Cold-start theme: clean white launch screen with the centered brand mark. -->
+    <style name="Theme.InvokeilPay.Launch">
+        <item name="android:windowBackground">@drawable/bg_splash</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
     </style>
 
     <!-- 8dp small components (chips, buttons inside cards) -->
@@ -23,5 +41,141 @@
 
     <style name="ShapeAppearance.Invokeil.Large" parent="ShapeAppearance.Material3.Corner.Large">
         <item name="cornerSize">20dp</item>
+    </style>
+
+    <!-- Soft brand-tinted pill behind the active bottom-nav item -->
+    <style name="Widget.Invokeil.NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/chip_fill_info</item>
+    </style>
+
+    <!-- ── Cards: white rounded 16dp, soft stroke + very soft elevation ──────── -->
+    <style name="Widget.Invokeil.Card" parent="Widget.Material3.Card.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="rippleColor">@color/ripple_brand</item>
+    </style>
+
+    <!-- ── Typography scale ──────────────────────────────────────────────────── -->
+    <!-- Screen / card titles: 18sp bold -->
+    <style name="TextAppearance.Invokeil.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Section headers: 13sp bold with letter spacing -->
+    <style name="TextAppearance.Invokeil.SectionHeader" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/text_muted</item>
+    </style>
+
+    <!-- Body: 14sp -->
+    <style name="TextAppearance.Invokeil.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Captions: 12sp muted -->
+    <style name="TextAppearance.Invokeil.Caption" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_muted</item>
+    </style>
+
+    <!-- ── Buttons: 52dp min height, 14dp radius ─────────────────────────────── -->
+    <!-- Primary: blue fill, white bold label -->
+    <style name="Widget.Invokeil.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="backgroundTint">@color/brand_primary</item>
+    </style>
+
+    <!-- Secondary: surface fill with a blue stroke and blue bold label -->
+    <style name="Widget.Invokeil.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/brand_primary</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="backgroundTint">@color/surface_card</item>
+        <item name="strokeColor">@color/brand_primary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Destructive: solid red fill, white bold label -->
+    <style name="Widget.Invokeil.Button.Destructive" parent="Widget.Material3.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="backgroundTint">@color/status_failed</item>
+    </style>
+
+    <!-- Compact pill buttons for toolbars / list rows (40dp, 12sp bold) -->
+    <style name="Widget.Invokeil.Button.Compact" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/brand_primary</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="backgroundTint">@color/surface_card</item>
+        <item name="strokeColor">@color/brand_primary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.Invokeil.Button.Compact.Danger">
+        <item name="android:textColor">@color/status_failed</item>
+        <item name="strokeColor">@color/status_failed</item>
+    </style>
+
+    <!-- Soft action pills (status color at ~12% alpha, colored label) -->
+    <style name="Widget.Invokeil.Button.Soft" parent="Widget.Material3.Button">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">14dp</item>
+    </style>
+
+    <style name="Widget.Invokeil.Button.Soft.Success">
+        <item name="android:textColor">@color/chip_text_success</item>
+        <item name="backgroundTint">@color/chip_fill_success</item>
+    </style>
+
+    <style name="Widget.Invokeil.Button.Soft.Danger">
+        <item name="android:textColor">@color/chip_text_danger</item>
+        <item name="backgroundTint">@color/chip_fill_danger</item>
+    </style>
+
+    <!-- ── Text inputs: rounded 12dp outlined boxes ──────────────────────────── -->
+    <style name="Widget.Invokeil.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
     </style>
 </resources>

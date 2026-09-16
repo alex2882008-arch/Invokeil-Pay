@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="Rocket"><title>Rocket</title>
+  <path d="M20 52 L42 24 L47 45 Z" fill="#00A651" stroke="#00A651" stroke-width="3" stroke-linejoin="round"/>
+  <text x="116" y="47" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="33" font-weight="800" fill="#8C3494">Rocket</text>
+  <text x="116" y="65" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="1.2" fill="#8C3494" opacity="0.72">DBBL Mobile Banking</text></svg>

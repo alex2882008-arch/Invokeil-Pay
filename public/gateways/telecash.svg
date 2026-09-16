@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="TeleCash"><title>TeleCash</title>
+  <circle cx="21" cy="41" r="4.5" fill="#1B9AD2"/>
+  <path d="M21 30 A 11 11 0 0 1 32 41" fill="none" stroke="#1B9AD2" stroke-width="4" stroke-linecap="round"/>
+  <path d="M21 19.5 A 21.5 21.5 0 0 1 42.5 41" fill="none" stroke="#1B9AD2" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+  <text x="114" y="52" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="32" font-weight="800" font-style="italic" fill="#1B9AD2">TeleCash</text></svg>

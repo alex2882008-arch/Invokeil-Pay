@@ -1,9 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Settings as SettingsIcon, Store, CreditCard, LifeBuoy, HelpCircle, TriangleAlert, Plus, Pencil,
-  Trash2, Save, RefreshCw, Sparkles, DatabaseZap,
+  Trash2, Save, RefreshCw, Sparkles, DatabaseZap, Upload,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -327,6 +327,81 @@ export function SettingsView() {
     </div>
   )
 
+  const logoFileRef = useRef<HTMLInputElement>(null)
+
+  /** Brand logo: visual uploader (file → data-URL) or a pasted URL — shown on payment pages. */
+  const logoUploader = () => {
+    const val = field('brandLogo')
+    return (
+      <div className="grid gap-1.5">
+        <Label htmlFor="set-brandLogo">{t('brandLogoLabel')}</Label>
+        <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/5">
+            {val ? (
+               
+              <img src={val} alt="Brand logo preview" className="h-full w-full object-contain p-1" />
+            ) : (
+              <Store className="h-5 w-5 text-muted-foreground/50" />
+            )}
+          </span>
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="press h-8 gap-1.5 text-xs"
+                disabled={!isAdmin}
+                onClick={() => logoFileRef.current?.click()}
+              >
+                <Upload className="h-3.5 w-3.5" /> {t('brandLogoUpload')}
+              </Button>
+              {val && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="press h-8 gap-1.5 text-xs text-destructive hover:text-destructive"
+                  disabled={!isAdmin}
+                  onClick={() => setField('brandLogo', '')}
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> {t('brandLogoRemove')}
+                </Button>
+              )}
+            </div>
+            <Input
+              id="set-brandLogo"
+              value={val.startsWith('data:') ? '' : val}
+              placeholder={t('brandLogoPh')}
+              disabled={!isAdmin}
+              onChange={(e) => setField('brandLogo', e.target.value)}
+              className="h-9 text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground">{t('brandLogoHint')}</p>
+          </div>
+        </div>
+        <input
+          ref={logoFileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/svg+xml,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            e.target.value = ''
+            if (!f) return
+            if (f.size > 300 * 1024) {
+              toast.error(t('brandLogoTooBig'))
+              return
+            }
+            const reader = new FileReader()
+            reader.onload = () => setField('brandLogo', String(reader.result ?? ''))
+            reader.readAsDataURL(f)
+          }}
+        />
+      </div>
+    )
+  }
+
   if (loading && !saved) {
     return (
       <div>
@@ -385,7 +460,7 @@ export function SettingsView() {
               <div className="grid gap-4">
                 {textInput('brandName', 'brandNameLabel', { placeholder: t('brandNamePh') })}
                 {textInput('brandTagline', 'brandTaglineLabel', { placeholder: t('brandTaglinePh') })}
-                {textInput('brandLogo', 'brandLogoLabel', { placeholder: t('brandLogoPh') })}
+                {logoUploader()}
               </div>
             </Card>
 

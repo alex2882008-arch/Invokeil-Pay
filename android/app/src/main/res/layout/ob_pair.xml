@@ -5,16 +5,13 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/ob_pair_title"
-        android:textSize="22sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
     <TextView
@@ -22,18 +19,19 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/ob_pair_body"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textColor="@color/text_muted"
         android:textSize="14sp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_scan"
+        style="@style/Widget.Invokeil.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginTop="20dp"
-        android:text="@string/btn_scan_qr"
-        android:textSize="15sp" />
+        android:text="@string/btn_scan_qr" />
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Invokeil.TextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -48,6 +46,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Invokeil.TextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -62,6 +61,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Invokeil.TextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -77,9 +77,9 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_test"
-        style="?attr/materialButtonOutlinedStyle"
+        style="@style/Widget.Invokeil.Button.Secondary"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="52dp"
         android:layout_marginTop="16dp"
         android:text="@string/test_connect" />
 
@@ -88,11 +88,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textColor="@color/text_muted"
         android:textSize="14sp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_continue"
+        style="@style/Widget.Invokeil.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginTop="20dp"

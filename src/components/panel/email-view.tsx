@@ -1067,7 +1067,7 @@ function InboxTab() {
     } catch { /* non-fatal for the inbox list */ }
   }, [])
 
-  useEffect(() => { void load(direction, search) }, [load, direction]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void load(direction, search) }, [load, direction])  
   useEffect(() => { void loadMeta() }, [loadMeta])
 
   const onSearch = (v: string) => {

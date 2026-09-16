@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="Google Pay"><title>Google Pay</title>
+  <g fill="none" stroke-width="7" stroke-linecap="round">
+    <path d="M56 27 A 13 13 0 0 1 69 40" stroke="#4285F4"/>
+    <path d="M69 40 L 59 40" stroke="#4285F4"/>
+    <path d="M69 40 A 13 13 0 0 1 56 53 A 13 13 0 0 1 46.8 49.2" stroke="#34A853"/>
+    <path d="M46.8 49.2 A 13 13 0 0 1 43 40" stroke="#FBBC05"/>
+    <path d="M43 40 A 13 13 0 0 1 56 27" stroke="#EA4335"/>
+  </g>
+  <text x="80" y="52" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="34" font-weight="500" fill="#5F6368">Pay</text></svg>

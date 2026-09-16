@@ -3,28 +3,53 @@ import { requireRole, jsonError } from '@/lib/auth'
 import { GATEWAY_CATALOG } from '@/lib/gateways'
 
 /**
- * First call ever: seed the Gateway table with the full fixed catalog
- * (fields mapped 1:1 from GATEWAY_CATALOG). Code/mfs/category are immutable
- * afterwards — admins only configure the rest.
+ * Sync the Gateway table with the fixed catalog: seeds on first call, then
+ * adds any gateway that appeared in the catalog later (e.g. new PipraPay
+ * parity entries). Admin-configured fields are never overwritten.
  */
-async function seedGatewaysIfEmpty(): Promise<void> {
-  const count = await db.gateway.count()
-  if (count > 0) return
-  await db.gateway.createMany({
-    data: GATEWAY_CATALOG.map((g) => ({
-      code: g.code,
-      name: g.name,
-      mfs: g.mfs,
-      category: g.category,
-      type: g.type,
-      accountType: g.accountType,
-      color: g.color,
-      textColor: g.textColor ?? '#FFFFFF',
-      icon: g.icon ?? null,
-      sortOrder: g.sortOrder,
-      instructions: g.instructions ?? null,
-    })),
-  })
+async function syncGateways(): Promise<void> {
+  const existing = await db.gateway.findMany({ select: { code: true }, orderBy: { sortOrder: 'asc' } })
+  if (existing.length === 0) {
+    await db.gateway.createMany({
+      data: GATEWAY_CATALOG.map((g) => ({
+        code: g.code,
+        name: g.name,
+        mfs: g.mfs,
+        category: g.category,
+        type: g.type,
+        accountType: g.accountType,
+        color: g.color,
+        textColor: g.textColor ?? '#FFFFFF',
+        icon: g.icon ?? null,
+        sortOrder: g.sortOrder,
+        instructions: g.instructions ?? null,
+      })),
+    })
+    return
+  }
+  const known = new Set(existing.map((e) => e.code))
+  const missing = GATEWAY_CATALOG.filter((g) => !known.has(g.code))
+  if (missing.length === 0) return
+  // Insert one-by-one — codes are unique and concurrent admin edits are rare.
+  for (const g of missing) {
+    await db.gateway
+      .create({
+        data: {
+          code: g.code,
+          name: g.name,
+          mfs: g.mfs,
+          category: g.category,
+          type: g.type,
+          accountType: g.accountType,
+          color: g.color,
+          textColor: g.textColor ?? '#FFFFFF',
+          icon: g.icon ?? null,
+          sortOrder: g.sortOrder,
+          instructions: g.instructions ?? null,
+        },
+      })
+      .catch(() => undefined) // unique race — harmless
+  }
 }
 
 // ── GET: list (?enabled=1) or ?summary=1 ─────────────────────────────────────
@@ -32,7 +57,7 @@ export async function GET(req: Request) {
   try {
     await requireRole(['ADMIN', 'AGENT', 'VIEWER'])
     const url = new URL(req.url)
-    await seedGatewaysIfEmpty()
+    await syncGateways()
 
     if (url.searchParams.get('summary')) {
       const [total, enabled, mfs, bank, global] = await Promise.all([

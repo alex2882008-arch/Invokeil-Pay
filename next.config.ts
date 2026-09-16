@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  // Hide the Next.js dev-tools badge on every environment (clean payment pages).
+  devIndicators: false,
 };
 
 export default nextConfig;

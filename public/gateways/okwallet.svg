@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="OK Wallet"><title>OK Wallet</title>
+  <circle cx="34" cy="40" r="21" fill="#FFC107"/>
+  <circle cx="34" cy="40" r="16" fill="none" stroke="#F1592A" stroke-width="2.5" opacity="0.4"/>
+  <text x="34" y="47" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" fill="#F1592A">OK</text>
+  <text x="123" y="52" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="34" font-weight="800" fill="#F1592A">Wallet</text></svg>

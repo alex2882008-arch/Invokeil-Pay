@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Deep-navy dark palette — matches the web panel dark theme -->
+    <color name="bg_page">#0F172A</color>
+    <color name="surface_card">#1E293B</color>
+    <color name="card_stroke">#334155</color>
+    <color name="text_muted">#94A3B8</color>
+    <color name="empty_icon">#475569</color>
+    <color name="ripple_brand">#332563EB</color>
+    <color name="bottom_nav_unchecked">#64748B</color>
+</resources>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="Dutch-Bangla Bank"><title>Dutch-Bangla Bank</title>
+  <text x="100" y="36" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="25" font-weight="800" fill="#00563F">Dutch-Bangla</text>
+  <path d="M62 60 L76 46 L80 62 Z" fill="#8C3494"/>
+  <circle cx="59" cy="62.5" r="3" fill="#00A651"/>
+  <text x="110" y="62" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="800" fill="#00563F">Bank</text></svg>
