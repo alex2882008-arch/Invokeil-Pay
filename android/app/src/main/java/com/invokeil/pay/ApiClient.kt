@@ -7,7 +7,6 @@ import android.telephony.TelephonyManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -485,5 +484,8 @@ object ApiClient {
         CoroutineScope(Dispatchers.Default).launch { block(ctx.applicationContext) }
     }
 
-    suspend fun onMain(block: () -> Unit) = withContext(Dispatchers.Main) { block() }
+    /** Fire-and-forget hop to the main thread — callable from any lambda. */
+    fun onMain(block: () -> Unit) {
+        CoroutineScope(Dispatchers.Main.immediate).launch { block() }
+    }
 }
