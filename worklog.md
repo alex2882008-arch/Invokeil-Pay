@@ -384,3 +384,24 @@ Work Log:
 Stage Summary:
 - 4/4 PASS — mobile horizontal overflow defects resolved; no regressions observed in re-tested views.
 
+
+---
+Task ID: 9 (orchestrator)
+Agent: Super Z (main)
+Task: v3 expansion wave — PipraPay/Ownpay parity modules, email/SMS automation, ops center, public site, gateway logos, Android v3, GitHub release
+
+Work Log:
+- Schema v3: +30 models (brands, email/sms providers+logs+templates, automations, refunds/disputes/settlements, risk, approvals, KYC, passkeys, outgoing payments, subscriptions, currencies, incidents/status, flags, imports, marketplace, event ledger, notification prefs) + field extensions; db:push clean
+- Core libs written by main: providers/vault.ts (AES-256-GCM credential vault), sigv4.ts (SES+SNS), providers/email.ts + sms.ts (7+6 adapters, failover chains, sandbox simulation, health tracking), event-ledger.ts (idempotency), risk-engine.ts, automation-engine.ts (Trigger→Condition→Delay→Branch→Action + wait-resume cursor + 6 workflow templates), notifier.ts (preference-center glue), sandbox.ts (6 scenarios), email-catalog.ts (320 templates: 80 cores × 3 tones + Bengali), portal-token.ts
+- Roles: 7-role RBAC (OWNER/ADMIN/DEVELOPER/FINANCE/SUPPORT/AGENT/VIEWER) via client-safe roles.ts; all role checks normalized to isAdminRole
+- Gateway Logo System: gateway-logo.tsx brand tiles for all 56 gateways; integrated into 7 views by agent 8-J
+- Parallel agents delivered (all tsc/eslint-verified by orchestrator): 8-A email module, 8-B SMS gateway + notification center, 8-C automations, 8-D money ops, 8-E trust & safety + 7-role users UI, 8-F operations center, 8-G customer-360/subscriptions/portal/verify, 8-H developer console, 8-J logos, 8-I SDKs(7)/CLI/device-push-APIs/Android-v3/CI/README/LICENSE, 8-S public site (landing, 14 docs articles, pricing, changelog, public status, 15 legal docs w/ latest BD law research, contact)
+- Orchestrator wiring: 21 i18n namespaces + V3NAV labels registered; admin-shell 9 nav groups (24 pages); SANDBOX topbar chip; settings appMode toggle + editable whitelist v3 keys; stats route lazy scheduler hook; seed v3 (320 templates, brands, identities, message templates, automations, risk rules, status components+incident, 14 marketplace apps, currencies, flags, subscriptions, refund/dispute/settlement/approval/KYC/outgoing samples) + clearDemoData v3
+- Bug fix cycles: automation WAIT-resume index cursor; interpolate typing; sandbox CheckoutPage fields; notifier findFirst; email MailerSend headers; 2 lint set-state-in-effect; 4 mobile overflows (min-w-0 chains) fixed + re-verified 4/4 by QA agent; seed incident re-seed guard (2nd demo reset left status page empty)
+- QA: browser agent 8-Q desktop 8/8 + public 5/5 + themes PASS, mobile 4 overflow defects found→fixed→re-verified PASS; e2e-v3.sh (115 assertions) + e2e-v2.sh (125) → 240/240 green ×2 cycles; tsc+eslint zero; hydration warning classified as Turbopack dev artifact (no meta in source)
+- GitHub: fresh history commit "Invokeil Pay v3.0.0" (511 files, PAT leaked nowhere, .env/db/logs ignored) → force-pushed main; description + 14 topics set; CI workflow SUCCESS; Android Build workflow SUCCESS (after 2 Kotlin fixes: SubscriptionInfo.number for per-SIM MSISDN, non-suspend onMain + View import); seed fix pushed
+- Environment notes: 4GB container OOM-killed dev servers during full-suite runs (bun ignores NODE_OPTIONS); mitigation = node runtime + heap cap + single-session suite runs; final state reseeded pristine and server running
+
+Stage Summary:
+- Invokeil Pay v3 delivered: 30+ admin modules across 9 nav groups, public site with full legal suite, 320-template email automation, SMS provider failover, automation builder, risk/approvals/KYC, ops center, developer console + sandbox, customer portal + receipt verification, Android v3 with GitHub-Actions APK builds, 7 SDKs + CLI, Community License
+- Verified: 240/240 e2e assertions, tsc/eslint zero, browser QA mobile+desktop PASS, GitHub CI + Android builds green
