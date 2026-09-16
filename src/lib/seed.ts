@@ -577,6 +577,8 @@ async function seedV3Data(): Promise<void> {
     for (const [name, sortOrder] of comps) {
       await db.statusComponent.create({ data: { name, sortOrder } })
     }
+  }
+  if ((await db.incident.count()) === 0) {
     await db.incident.create({
       data: {
         title: 'Elevated webhook delivery latency',
